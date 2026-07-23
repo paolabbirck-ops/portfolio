@@ -2,914 +2,340 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Stamps Camera</title>
-<link rel="stylesheet" href="https://use.typekit.net/ykk1swv.css">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stampa</title>
 <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#F2EDE8;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:#1A1208;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;}
+#app{position:relative;width:100%;height:100%;max-width:430px;margin:0 auto;overflow:hidden;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:#F2EDE8;opacity:0;pointer-events:none;transition:opacity .22s ease;}
+.screen.active{opacity:1;pointer-events:auto;}
+.progress{height:3px;background:#E0D6CE;margin:52px 20px 0;border-radius:2px;flex-shrink:0;}
+.progress-fill{height:100%;border-radius:2px;background:#C94E2C;transition:width .35s ease;}
+.btn-primary{display:block;width:calc(100% - 40px);margin:0 20px;padding:18px;background:#C94E2C;color:#fff;border:none;border-radius:100px;font-size:17px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:opacity .15s;}
+.btn-primary:active{opacity:.82;}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* WELCOME */
+#s-welcome{padding-bottom:max(24px,env(safe-area-inset-bottom));}
+.welcome-body{flex:1;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:28px 24px 0;gap:10px;}
+.welcome-body h1{font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.02em;text-align:center;}
+.welcome-body .sub{font-size:15px;color:#8A7C70;text-align:center;margin-bottom:4px;}
+.phone-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;min-height:0;}
+.phone-body{width:175px;background:#1C1810;border-radius:30px;padding:10px 8px;box-shadow:0 20px 60px rgba(0,0,0,.35);flex-shrink:0;}
+.phone-notch{width:54px;height:8px;background:#0A0804;border-radius:4px;margin:0 auto 8px;}
+.stamps-demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:4px;overflow:hidden;}
+.demo-stamp{aspect-ratio:1;background:#888;position:relative;overflow:hidden;}
 
-html, body {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  background: #0a0a0a;
-  font-family: 'aktiv-grotesk', 'Helvetica Neue', Arial, sans-serif;
-  color: #fff;
-  -webkit-font-smoothing: antialiased;
-  user-select: none;
-  -webkit-user-select: none;
-}
+/* QUIZ */
+#s-quiz{padding-bottom:0;}
+.quiz-body{flex:1;overflow-y:auto;padding:20px 20px 0;-webkit-overflow-scrolling:touch;}
+.quiz-body h1{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1.25;margin:18px 0 6px;}
+.quiz-sub{font-size:14px;color:#8A7C70;margin-bottom:18px;}
+.opt{display:flex;align-items:center;gap:14px;padding:15px 14px;margin-bottom:10px;background:#fff;border-radius:16px;border:1.5px solid #E6DDD6;cursor:pointer;transition:border-color .15s,background .15s;-webkit-tap-highlight-color:transparent;}
+.opt-icon{font-size:22px;flex-shrink:0;line-height:1;}
+.opt-text{font-size:14px;font-weight:500;line-height:1.4;flex:1;color:#1A1208;}
+.opt-check{width:22px;height:22px;border-radius:50%;background:#C94E2C;display:none;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;}
+.opt.on{border-color:#C94E2C;background:rgba(201,78,44,.06);}
+.opt.on .opt-text{color:#C94E2C;}
+.opt.on .opt-check{display:flex;}
+.quiz-footer{padding:14px 0 max(24px,env(safe-area-inset-bottom));flex-shrink:0;background:#F2EDE8;}
 
-/* ── Desktop backdrop ── */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background: repeating-linear-gradient(
-    45deg,
-    #111 0px, #111 1px,
-    transparent 1px, transparent 12px
-  );
-  pointer-events: none;
-}
+/* PERMISSION */
+#s-permission{padding-bottom:0;}
+.perm-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 28px;gap:14px;text-align:center;}
+.perm-cam-icon{width:82px;height:82px;border-radius:50%;background:rgba(201,78,44,.12);display:flex;align-items:center;justify-content:center;font-size:38px;margin-bottom:4px;}
+.perm-body h1{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.25;}
+.perm-body .sub{font-size:14px;color:#8A7C70;line-height:1.65;max-width:295px;}
+.perm-features{width:100%;display:flex;flex-direction:column;gap:14px;margin-top:6px;text-align:left;}
+.feat{display:flex;align-items:flex-start;gap:12px;}
+.feat-icon{width:36px;height:36px;border-radius:50%;background:rgba(201,78,44,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;margin-top:1px;}
+.feat-title{font-size:14px;font-weight:700;margin-bottom:2px;}
+.feat-desc{font-size:13px;color:#8A7C70;line-height:1.45;}
+.perm-footer{padding:14px 0 max(24px,env(safe-area-inset-bottom));flex-shrink:0;}
 
-/* ── App shell ── */
-#app {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  background: #000;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 0 80px rgba(0,0,0,0.8);
-}
+/* CAMERA */
+#s-camera{background:#000;}
+.cam-vf{position:absolute;inset:0;overflow:hidden;}
+#video{width:100%;height:100%;object-fit:cover;display:block;}
+#video.mirrored{transform:scaleX(-1);}
+#stamp-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
+.cam-hdr{position:absolute;top:0;left:0;right:0;z-index:20;display:flex;align-items:flex-start;justify-content:space-between;padding:max(14px,env(safe-area-inset-top)) 18px 14px;background:rgba(242,237,232,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+.cam-hdr-text h2{font-size:16px;font-weight:700;color:#1A1208;}
+.cam-hdr-text p{font-size:12px;color:#8A7C70;margin-top:2px;}
+.cam-skip{background:none;border:none;font-size:15px;color:#8A7C70;font-weight:500;cursor:pointer;padding:4px 0;-webkit-tap-highlight-color:transparent;}
+.cam-controls{position:absolute;bottom:0;left:0;right:0;z-index:20;background:#F2EDE8;border-top:1px solid rgba(0,0,0,.06);padding:16px 0 max(28px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-around;}
+.ctrl-btn{display:flex;flex-direction:column;align-items:center;gap:5px;background:none;border:none;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.ctrl-icon{width:46px;height:46px;border-radius:13px;background:#fff;border:1.5px solid #E0D6CE;display:flex;align-items:center;justify-content:center;font-size:20px;transition:background .12s;}
+.ctrl-btn:active .ctrl-icon{background:#EDE8E2;}
+.ctrl-label{font-size:10px;color:#8A7C70;font-weight:500;letter-spacing:.02em;}
+#btn-carimbar{width:76px;height:76px;border-radius:50%;background:#C94E2C;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;box-shadow:0 4px 22px rgba(201,78,44,.42);-webkit-tap-highlight-color:transparent;transition:transform .1s,box-shadow .1s;}
+#btn-carimbar:active{transform:scale(.91);box-shadow:0 2px 10px rgba(201,78,44,.35);}
+.carimbar-icon{font-size:22px;color:#fff;line-height:1;}
+.carimbar-lbl{font-size:8px;font-weight:800;color:#fff;letter-spacing:.1em;}
 
-/* ── Topbar ── */
-#topbar {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18px;
-  z-index: 20;
-  background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
-}
+/* GALLERY */
+.gal-topbar{display:flex;align-items:center;padding:max(14px,env(safe-area-inset-top)) 18px 13px;gap:12px;border-bottom:1px solid rgba(0,0,0,.06);flex-shrink:0;}
+.gal-back{width:34px;height:34px;border-radius:50%;background:#fff;border:1.5px solid #E0D6CE;display:flex;align-items:center;justify-content:center;font-size:15px;color:#1A1208;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.gal-back:active{background:#EDE8E2;}
+.gal-title{font-size:16px;font-weight:700;}
+.gal-count{font-size:12px;color:#8A7C70;margin-top:1px;}
+.gal-action{margin-left:auto;background:none;border:none;font-size:14px;color:#C94E2C;font-weight:500;cursor:pointer;padding:4px 0;}
+.gal-body{flex:1;overflow-y:auto;min-height:0;}
+#gal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;align-content:start;}
+.stamp-item{aspect-ratio:.78;position:relative;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.stamp-item canvas{width:100%;height:100%;display:block;}
+.stamp-item:active{opacity:.8;}
+#gal-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#8A7C70;font-size:14px;text-align:center;padding:40px;}
+#gal-empty .big{font-size:52px;margin-bottom:4px;}
 
-.logo {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.top-btn {
-  width: 34px; height: 34px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  backdrop-filter: blur(6px);
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.top-btn:hover { background: rgba(255,255,255,0.2); }
-
-/* ── Viewfinder ── */
-#viewfinder {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  bottom: 152px;
-  overflow: hidden;
-  background: #111;
-}
-
-#video {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-  transform: scaleX(1);
-  transition: opacity 0.2s;
-}
-#video.mirrored { transform: scaleX(-1); }
-
-#overlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-}
-
-/* ── Controls ── */
-#controls {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 152px;
-  background: rgba(8,8,8,0.94);
-  backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(255,255,255,0.06);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 14px 0 max(20px, env(safe-area-inset-bottom, 20px));
-  gap: 14px;
-}
-
-/* ── Stamps bar ── */
-#stamps-bar {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 0 18px;
-  width: 100%;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-#stamps-bar::-webkit-scrollbar { display: none; }
-
-.stamp-btn {
-  flex-shrink: 0;
-  width: 56px; height: 46px;
-  border-radius: 10px;
-  border: 1.5px solid rgba(255,255,255,0.1);
-  background: rgba(255,255,255,0.05);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  transition: border-color 0.15s, background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-.stamp-btn .icon { font-size: 17px; line-height: 1; }
-.stamp-btn .lbl  {
-  font-size: 7.5px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: rgba(255,255,255,0.35);
-  transition: color 0.15s;
-}
-.stamp-btn.on {
-  border-color: rgba(255,255,255,0.65);
-  background: rgba(255,255,255,0.12);
-}
-.stamp-btn.on .lbl { color: rgba(255,255,255,0.8); }
-
-/* ── Capture row ── */
-#capture-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 28px;
-}
-
-/* Gallery thumb */
-#gal-thumb {
-  width: 52px; height: 52px;
-  border-radius: 12px;
-  border: 2px solid rgba(255,255,255,0.2);
-  overflow: hidden;
-  cursor: pointer;
-  background: rgba(255,255,255,0.05);
-  position: relative;
-  transition: opacity 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-#gal-thumb:hover { opacity: 0.82; }
-#gal-thumb img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: none;
-}
-#gal-thumb .empty {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; color: rgba(255,255,255,0.18);
-}
-#gal-thumb .count {
-  position: absolute;
-  bottom: 4px; right: 4px;
-  background: rgba(0,0,0,0.6);
-  color: #fff;
-  font-size: 9px; font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 4px;
-  display: none;
-  letter-spacing: 0.03em;
-}
-
-/* Capture button */
-#shutter {
-  width: 74px; height: 74px;
-  border-radius: 50%;
-  border: 3px solid rgba(255,255,255,0.88);
-  background: transparent;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.1s;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-}
-#shutter::after {
-  content: '';
-  width: 60px; height: 60px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.1s;
-}
-#shutter:active               { transform: scale(0.9); }
-#shutter:active::after        { transform: scale(0.9); }
-
-/* Flip button */
-#flip-btn {
-  width: 52px; height: 52px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.09);
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.15s;
-  -webkit-tap-highlight-color: transparent;
-}
-#flip-btn:hover { background: rgba(255,255,255,0.16); }
-
-/* ── Flash ── */
-#flash {
-  position: absolute; inset: 0;
-  background: #fff;
-  pointer-events: none;
-  opacity: 0;
-  z-index: 40;
-}
-
-/* ── Permission screen ── */
-#perm {
-  position: absolute; inset: 0;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  z-index: 200;
-  padding: 48px 36px;
-  text-align: center;
-}
-#perm.gone { display: none; }
-
-.perm-icon {
-  width: 92px; height: 92px;
-  border-radius: 22px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 40px;
-  margin-bottom: 6px;
-}
-.perm-h    { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
-.perm-p    { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.75; max-width: 280px; }
-#allow-btn {
-  padding: 14px 44px;
-  background: #fff;
-  color: #000;
-  border: none;
-  border-radius: 100px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 6px;
-  transition: opacity 0.15s;
-}
-#allow-btn:hover { opacity: 0.88; }
-
-/* ── Gallery modal ── */
-#gallery {
-  position: absolute; inset: 0;
-  background: #000;
-  z-index: 100;
-  display: none;
-  flex-direction: column;
-}
-#gallery.open {
-  display: flex;
-  animation: up 0.26s cubic-bezier(0.22,1,0.36,1);
-}
-@keyframes up {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0);    }
-}
-
-#gal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 20px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-}
-#gal-header h2   { font-size: 17px; font-weight: 700; }
-#gal-subtitle    { font-size: 12px; color: rgba(255,255,255,0.38); margin-top: 2px; }
-#gal-close {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.1);
-  border: none; color: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-}
-
-#gal-grid {
-  flex: 1;
-  overflow-y: auto;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
-  align-content: start;
-}
-
-.gal-item {
-  aspect-ratio: 1;
-  overflow: hidden;
-  cursor: pointer;
-  position: relative;
-  background: #111;
-}
-.gal-item img {
-  width: 100%; height: 100%;
-  object-fit: cover;
-  display: block;
-}
-.gal-item .dl {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,0);
-  display: flex; align-items: flex-end; justify-content: flex-end;
-  padding: 8px;
-  transition: background 0.18s;
-}
-.gal-item:hover .dl { background: rgba(0,0,0,0.32); }
-.gal-item .dl-btn {
-  width: 30px; height: 30px;
-  background: rgba(0,0,0,0.55);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 13px;
-  opacity: 0;
-  transition: opacity 0.18s;
-  backdrop-filter: blur(4px);
-}
-.gal-item:hover .dl-btn { opacity: 1; }
-
-/* ── Empty gallery ── */
-#gal-empty {
-  display: none;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: rgba(255,255,255,0.25);
-  font-size: 13px;
-}
-#gal-empty .big { font-size: 44px; }
-
-/* ── Toast ── */
-#toast {
-  position: absolute;
-  bottom: 164px; left: 16px; right: 16px;
-  background: rgba(220,50,50,0.92);
-  color: #fff;
-  padding: 11px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  text-align: center;
-  z-index: 300;
-  display: none;
-  backdrop-filter: blur(8px);
-}
-#toast.show {
-  display: block;
-  animation: fadeUp 0.2s ease-out;
-}
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Capture burst ring ── */
-#burst {
-  position: absolute; inset: 0;
-  pointer-events: none;
-  z-index: 35;
-  border: 0px solid rgba(255,255,255,0);
-  border-radius: 0;
-  transition: none;
-}
-#burst.pop {
-  animation: burstAnim 0.35s ease-out forwards;
-}
-@keyframes burstAnim {
-  0%   { box-shadow: inset 0 0 0 0px rgba(255,255,255,0.35); }
-  40%  { box-shadow: inset 0 0 0 18px rgba(255,255,255,0.15); }
-  100% { box-shadow: inset 0 0 0 0px rgba(255,255,255,0); }
-}
-
+/* FLASH */
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:200;}
 </style>
 </head>
 <body>
-
 <div id="app">
+<div id="flash"></div>
 
-  <!-- Permission screen -->
-  <div id="perm">
-    <div class="perm-icon">📷</div>
-    <div class="perm-h">Stamps Camera</div>
-    <p class="perm-p">Carimbos vintage em tempo real — data 90s, selos postais, lacres, película e vinheta.</p>
-    <button id="allow-btn">Permitir câmera</button>
+<!-- S1 WELCOME -->
+<div class="screen active" id="s-welcome">
+  <div class="progress"><div class="progress-fill" style="width:25%"></div></div>
+  <div class="welcome-body">
+    <h1>Suas fotos viram pequenos tesouros</h1>
+    <p class="sub">Colecione momentos. Deixe-os bonitos.</p>
+    <div class="phone-wrap">
+      <div class="phone-body">
+        <div class="phone-notch"></div>
+        <div class="stamps-demo-grid" id="demo-grid"></div>
+      </div>
+    </div>
   </div>
+  <button class="btn-primary" onclick="go('quiz')">Começar</button>
+  <div style="height:max(20px,env(safe-area-inset-bottom))"></div>
+</div>
 
-  <!-- Flash + burst -->
-  <div id="flash"></div>
-  <div id="burst"></div>
-
-  <!-- Toast -->
-  <div id="toast"></div>
-
-  <!-- Topbar -->
-  <div id="topbar">
-    <button class="top-btn" id="back-btn" title="Voltar">←</button>
-    <span class="logo">Stamps</span>
-    <button class="top-btn" id="flip-top" title="Virar câmera">↺</button>
+<!-- S2 QUIZ -->
+<div class="screen" id="s-quiz">
+  <div class="progress"><div class="progress-fill" style="width:50%"></div></div>
+  <div class="quiz-body">
+    <h1>O que mais anima você no Stampa?</h1>
+    <div class="quiz-sub">Escolha o que mais combina com você</div>
+    <div class="opt" onclick="pickOpt(this)"><span class="opt-icon">📷</span><span class="opt-text">Transformar minhas fotos em selos colecionáveis fofos</span><div class="opt-check">✓</div></div>
+    <div class="opt" onclick="pickOpt(this)"><span class="opt-icon">📖</span><span class="opt-text">Manter um diário visual do meu dia a dia</span><div class="opt-check">✓</div></div>
+    <div class="opt" onclick="pickOpt(this)"><span class="opt-icon">✂️</span><span class="opt-text">Criar páginas de scrapbook com adesivos e fita</span><div class="opt-check">✓</div></div>
+    <div class="opt" onclick="pickOpt(this)"><span class="opt-icon">✉️</span><span class="opt-text">Fazer algo pessoal para compartilhar com pessoas queridas</span><div class="opt-check">✓</div></div>
+    <div class="opt" onclick="pickOpt(this)"><span class="opt-icon">✨</span><span class="opt-text">Tudo isso, eu quero tudo.</span><div class="opt-check">✓</div></div>
+    <div style="height:16px"></div>
   </div>
+  <div class="quiz-footer">
+    <button class="btn-primary" onclick="go('permission')">Continuar</button>
+  </div>
+</div>
 
-  <!-- Viewfinder -->
-  <div id="viewfinder">
+<!-- S3 PERMISSION -->
+<div class="screen" id="s-permission">
+  <div class="progress"><div class="progress-fill" style="width:75%"></div></div>
+  <div class="perm-body">
+    <div class="perm-cam-icon">📷</div>
+    <h1>Pronto para capturar seu primeiro selo?</h1>
+    <p class="sub">O Stampa usa sua câmera para enquadrar o mundo por um visor em formato de selo</p>
+    <div class="perm-features">
+      <div class="feat"><div class="feat-icon">🎯</div><div><div class="feat-title">Enquadre sua foto como selo</div><div class="feat-desc">Veja o mundo pelo visor em formato de selo antes de capturar</div></div></div>
+      <div class="feat"><div class="feat-icon">⬡</div><div><div class="feat-title">Carimbo com um toque</div><div class="feat-desc">Transforme qualquer foto em um selo colecionável com bordas serrilhadas</div></div></div>
+    </div>
+  </div>
+  <div class="perm-footer">
+    <button class="btn-primary" onclick="initCamera()">Continuar</button>
+  </div>
+</div>
+
+<!-- S4 CAMERA -->
+<div class="screen" id="s-camera">
+  <div class="cam-vf">
     <video id="video" autoplay playsinline muted></video>
-    <canvas id="overlay"></canvas>
+    <svg id="stamp-svg" xmlns="http://www.w3.org/2000/svg"></svg>
   </div>
-
-  <!-- Controls -->
-  <div id="controls">
-    <div id="stamps-bar"></div>
-    <div id="capture-row">
-      <div id="gal-thumb" title="Ver galeria">
-        <div class="empty">⊡</div>
-        <img id="thumb-img" alt="">
-        <div class="count" id="thumb-count"></div>
-      </div>
-      <button id="shutter" title="Capturar foto"></button>
-      <button id="flip-btn" title="Virar câmera">↺</button>
-    </div>
+  <div class="cam-hdr">
+    <div class="cam-hdr-text"><h2>Carimbe seu primeiro selo</h2><p>Enquadre um momento e deixe com a sua cara.</p></div>
+    <button class="cam-skip" onclick="go('gallery')">Pular</button>
   </div>
-
-  <!-- Gallery modal -->
-  <div id="gallery">
-    <div id="gal-header">
-      <div>
-        <h2>Galeria</h2>
-        <div id="gal-subtitle">0 fotos</div>
-      </div>
-      <button id="gal-close">✕</button>
-    </div>
-    <div id="gal-empty">
-      <div class="big">📷</div>
-      <span>Nenhuma foto ainda</span>
-    </div>
-    <div id="gal-grid"></div>
+  <div class="cam-controls">
+    <button class="ctrl-btn" onclick="pickFromLib()"><div class="ctrl-icon">🖼</div><div class="ctrl-label">Enviar</div></button>
+    <button id="btn-carimbar" onclick="capture()"><div class="carimbar-icon">⊡</div><div class="carimbar-lbl">CARIMBAR</div></button>
+    <button class="ctrl-btn" onclick="flipCam()"><div class="ctrl-icon">↺</div><div class="ctrl-label">Virar</div></button>
   </div>
+</div>
 
+<!-- S5 GALLERY -->
+<div class="screen" id="s-gallery">
+  <div class="gal-topbar">
+    <button class="gal-back" onclick="go('camera')">←</button>
+    <div><div class="gal-title">All Stamps</div><div class="gal-count" id="gal-count">0 stamps</div></div>
+    <button class="gal-action" onclick="go('camera')">+ Novo</button>
+  </div>
+  <div class="gal-body">
+    <div id="gal-empty"><div class="big">📮</div><strong>Nenhum selo ainda</strong><span>Pressione CARIMBAR para criar o seu primeiro</span></div>
+    <div id="gal-grid" style="display:none"></div>
+  </div>
+</div>
 </div>
 
 <script>
 'use strict';
+const S={stream:null,facing:'environment',photos:[],rect:null,overlayReady:false};
+const f=n=>n.toFixed(2);
+const $=id=>document.getElementById(id);
 
-/* ── State ──────────────────────────────────────────────── */
-const S = {
-  stream   : null,
-  facing   : 'environment',
-  active   : new Set(['date']),
-  photos   : [],
-  raf      : null,
-};
+/* demo grid */
+['#8B7355','#6A8C69','#8B6060','#7580A0','#A08560','#607080','#806050','#508070','#7060A0'].forEach(c=>{
+  const d=document.createElement('div');d.className='demo-stamp';d.style.background=c;$('demo-grid').appendChild(d);
+});
 
-/* ── DOM ─────────────────────────────────────────────────── */
-const $ = id => document.getElementById(id);
-const video    = $('video');
-const overlay  = $('overlay');
-const ctx      = overlay.getContext('2d');
-const permEl   = $('perm');
-const flashEl  = $('flash');
-const burstEl  = $('burst');
-const toastEl  = $('toast');
-const galMdl   = $('gallery');
-const galGrid  = $('gal-grid');
-const galSub   = $('gal-subtitle');
-const galEmpty = $('gal-empty');
-const thumbImg = $('thumb-img');
-const thumbCnt = $('thumb-count');
-
-/* ── Stamp definitions ───────────────────────────────────── */
-const STAMPS = [
-  { id: 'date',     icon: '📅', lbl: 'Data',    fn: drawDate     },
-  { id: 'post',     icon: '✉',  lbl: 'Selo',    fn: drawPost     },
-  { id: 'seal',     icon: '🔴', lbl: 'Lacre',   fn: drawSeal     },
-  { id: 'film',     icon: '🎞', lbl: 'Filme',   fn: drawFilm     },
-  { id: 'vignette', icon: '◉',  lbl: 'Vinheta', fn: drawVignette },
-];
-
-/* ── Scale helper ────────────────────────────────────────── */
-const sc = (w, h) => Math.min(w, h) / 400;
-
-/* ────────────────────────────────────────────────────────── */
-/* STAMP: Vintage date (90s camera)                          */
-/* ────────────────────────────────────────────────────────── */
-function drawDate(c, w, h) {
-  const s   = sc(w, h);
-  const pad = 18 * s;
-  const now = new Date();
-  const dd  = String(now.getDate()).padStart(2, '0');
-  const mon = ['JAN','FEB','MAR','APR','MAY','JUN',
-               'JUL','AUG','SEP','OCT','NOV','DEC'][now.getMonth()];
-  const yr  = now.getFullYear();
-  const hh  = String(now.getHours()).padStart(2, '0');
-  const mm  = String(now.getMinutes()).padStart(2, '0');
-
-  const fs  = Math.round(17 * s);
-  c.save();
-  c.font      = `bold ${fs}px 'Courier New', monospace`;
-  c.textAlign = 'right';
-
-  /* amber glow */
-  c.shadowColor  = 'rgba(255,155,0,0.95)';
-  c.shadowBlur   = Math.round(12 * s);
-  c.fillStyle    = '#FFA040';
-  c.fillText(`${dd} ${mon} ${yr}`, w - pad, h - pad - fs * 1.35);
-
-  c.shadowColor  = 'rgba(255,155,0,0.7)';
-  c.shadowBlur   = Math.round(8 * s);
-  c.fillText(`${hh}:${mm}`, w - pad, h - pad);
-  c.restore();
+/* nav */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('s-'+id).classList.add('active');
+  if(id==='gallery')refreshGallery();
+}
+function pickOpt(el){
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('on'));
+  el.classList.add('on');
 }
 
-/* ────────────────────────────────────────────────────────── */
-/* STAMP: Postage stamp border                               */
-/* ────────────────────────────────────────────────────────── */
-function drawPost(c, w, h) {
-  const s   = sc(w, h);
-  const mg  = 20 * s;
-  const gap = 14 * s;
-  const r   = 4.2 * s;
+/* camera */
+async function initCamera(){
+  go('camera');
+  await startStream();
+  if(!S.overlayReady){buildOverlay();window.addEventListener('resize',buildOverlay);S.overlayReady=true;}
+}
+async function startStream(){
+  try{
+    if(S.stream)S.stream.getTracks().forEach(t=>t.stop());
+    const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:S.facing,width:{ideal:1920},height:{ideal:1080}},audio:false});
+    S.stream=stream;
+    const v=$('video');v.srcObject=stream;v.classList.toggle('mirrored',S.facing==='user');await v.play();
+  }catch(e){alert('Câmera indisponível: '+(e.message||e));}
+}
+async function flipCam(){S.facing=S.facing==='environment'?'user':'environment';await startStream();}
 
-  c.save();
-  c.fillStyle = 'rgba(255,255,255,0.78)';
+/* stamp SVG overlay */
+function buildOverlay(){
+  const vf=document.querySelector('.cam-vf');
+  const hdr=document.querySelector('.cam-hdr');
+  const ctrl=document.querySelector('.cam-controls');
+  const svg=$('stamp-svg');
+  const W=vf.clientWidth,H=vf.clientHeight;
+  const hH=hdr.offsetHeight,cH=ctrl.offsetHeight;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
 
-  const row = (x1, y1, x2, y2, horiz) => {
-    const len  = horiz ? x2 - x1 : y2 - y1;
-    const n    = Math.max(2, Math.round(len / gap));
-    const step = len / n;
-    for (let i = 0; i <= n; i++) {
-      const px = horiz ? x1 + i * step : x1;
-      const py = horiz ? y1            : y1 + i * step;
-      c.beginPath();
-      c.arc(px, py, r, 0, Math.PI * 2);
-      c.fill();
-    }
+  const aTop=hH+12,aBot=H-cH-12,aH=aBot-aTop;
+  const sW=Math.min(W*0.84,aH*0.74);
+  const sH=sW*1.32;
+  const sx=(W-sW)/2,sy=aTop+(aH-sH)/2,sRx=18;
+  const brd=sW*0.095,brdT=brd*1.55,brdB=brd;
+  const ix=sx+brd,iy=sy+brdT,iw=sW-brd*2,ih=sH-brdT-brdB,iRx=5;
+  S.rect={x:ix,y:iy,w:iw,h:ih};
+
+  const pR=brd*0.24,pGap=pR*3;
+  let dots='';
+  const nX=Math.max(2,Math.round(iw/pGap)),gX=iw/nX;
+  for(let i=0;i<=nX;i++){const px=ix+i*gX;dots+=`<circle cx="${f(px)}" cy="${f(iy)}" r="${f(pR)}"/><circle cx="${f(px)}" cy="${f(iy+ih)}" r="${f(pR)}"/>`;}
+  const nY=Math.max(2,Math.round(ih/pGap)),gY=ih/nY;
+  for(let i=1;i<nY;i++){const py=iy+i*gY;dots+=`<circle cx="${f(ix)}" cy="${f(py)}" r="${f(pR)}"/><circle cx="${f(ix+iw)}" cy="${f(py)}" r="${f(pR)}"/>`;}
+
+  const lblY=sy+brdT*0.68,lblFs=brd*0.52;
+  svg.innerHTML=`
+    <defs>
+      <mask id="m-out"><rect width="${W}" height="${H}" fill="white"/><rect x="${f(sx)}" y="${f(sy)}" width="${f(sW)}" height="${f(sH)}" rx="${sRx}" fill="black"/></mask>
+      <mask id="m-body"><rect width="${W}" height="${H}" fill="black"/><rect x="${f(sx)}" y="${f(sy)}" width="${f(sW)}" height="${f(sH)}" rx="${sRx}" fill="white"/><rect x="${f(ix)}" y="${f(iy)}" width="${f(iw)}" height="${f(ih)}" rx="${iRx}" fill="black"/><g fill="black">${dots}</g></mask>
+    </defs>
+    <rect width="${W}" height="${H}" fill="rgba(0,0,0,0.42)" mask="url(#m-out)"/>
+    <rect width="${W}" height="${H}" fill="#C0B0A6" opacity="0.93" mask="url(#m-body)"/>
+    <g fill="rgba(0,0,0,0.22)">${dots}</g>
+    <rect x="${f(ix)}" y="${f(iy)}" width="${f(iw)}" height="${f(ih)}" rx="${iRx}" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+    <text x="${f(sx+sW/2)}" y="${f(lblY)}" fill="rgba(255,255,255,0.72)" font-family="'Courier New',Courier,monospace" font-size="${f(lblFs)}" font-weight="700" text-anchor="middle" letter-spacing="3">STAMPA</text>`;
+}
+
+/* capture */
+function capture(){
+  if(!S.stream||!S.rect)return;
+  const fl=$('flash');
+  fl.style.transition='none';fl.style.opacity='0.88';
+  requestAnimationFrame(()=>{fl.style.transition='opacity 0.26s ease-out';fl.style.opacity='0';});
+  if(navigator.vibrate)navigator.vibrate(20);
+
+  const vid=$('video'),vf=document.querySelector('.cam-vf');
+  const vW=vid.videoWidth||vf.clientWidth,vH=vid.videoHeight||vf.clientHeight;
+  const dW=vf.clientWidth,dH=vf.clientHeight;
+  const scale=Math.max(dW/vW,dH/vH);
+  const offX=(vW*scale-dW)/2,offY=(vH*scale-dH)/2;
+  const {x,y,w,h}=S.rect;
+  const srcX=(x+offX)/scale,srcY=(y+offY)/scale,srcW=w/scale,srcH=h/scale;
+  const ratio=Math.min(1,1600/srcW);
+  const capW=Math.round(srcW*ratio),capH=Math.round(srcH*ratio);
+
+  const raw=document.createElement('canvas');raw.width=capW;raw.height=capH;
+  const rc=raw.getContext('2d');
+  if(S.facing==='user'){rc.translate(capW,0);rc.scale(-1,1);}
+  rc.drawImage(vid,srcX,srcY,srcW,srcH,0,0,capW,capH);
+  if(S.facing==='user')rc.setTransform(1,0,0,1,0,0);
+
+  const stamped=makeStamp(raw,capW,capH);
+  S.photos.unshift({url:stamped.toDataURL('image/png'),canvas:stamped});
+  go('gallery');
+}
+
+/* stamp shape */
+function makeStamp(src,sw,sh){
+  const BORDER=Math.round(Math.min(sw,sh)*0.09);
+  const PERF=Math.round(BORDER*0.30);
+  const tW=sw+BORDER*2,tH=sh+BORDER*2;
+  const c=document.createElement('canvas');c.width=tW;c.height=tH;
+  const ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,tW,tH);
+  ctx.drawImage(src,0,0,sw,sh,BORDER,BORDER,sw,sh);
+  ctx.globalCompositeOperation='destination-out';
+  const nX=Math.round(tW/(PERF*3)),nY=Math.round(tH/(PERF*3));
+  const gX=tW/nX,gY=tH/nY;
+  for(let i=0;i<=nX;i++){const px=i*gX;ctx.beginPath();ctx.arc(px,0,PERF,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(px,tH,PERF,0,Math.PI*2);ctx.fill();}
+  for(let i=1;i<nY;i++){const py=i*gY;ctx.beginPath();ctx.arc(0,py,PERF,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(tW,py,PERF,0,Math.PI*2);ctx.fill();}
+  ctx.globalCompositeOperation='source-over';
+  return c;
+}
+
+/* pick from library */
+function pickFromLib(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const img=new Image();
+    img.onload=()=>{
+      const src=document.createElement('canvas');src.width=img.naturalWidth;src.height=img.naturalHeight;
+      src.getContext('2d').drawImage(img,0,0);
+      const stamped=makeStamp(src,img.naturalWidth,img.naturalHeight);
+      S.photos.unshift({url:stamped.toDataURL('image/png'),canvas:stamped});
+      go('gallery');
+    };
+    img.src=URL.createObjectURL(file);
   };
-
-  const o = gap / 2;
-  row(mg + o, mg,      w - mg - o, mg,      true);   /* top    */
-  row(mg + o, h - mg,  w - mg - o, h - mg,  true);   /* bottom */
-  row(mg,     mg + o,  mg,         h - mg - o, false);/* left   */
-  row(w - mg, mg + o,  w - mg,     h - mg - o, false);/* right  */
-  c.restore();
+  inp.click();
 }
 
-/* ────────────────────────────────────────────────────────── */
-/* STAMP: Wax seal                                           */
-/* ────────────────────────────────────────────────────────── */
-function drawSeal(c, w, h) {
-  const s  = sc(w, h);
-  const cx = w - 62 * s;
-  const cy = 72 * s;      /* below topbar safe zone */
-  const R  = 36 * s;
-
-  c.save();
-
-  /* shadow */
-  c.shadowColor   = 'rgba(0,0,0,0.45)';
-  c.shadowBlur    = 14 * s;
-  c.shadowOffsetY = 4 * s;
-
-  /* body */
-  c.beginPath();
-  c.arc(cx, cy, R, 0, Math.PI * 2);
-  c.fillStyle = 'rgba(172,24,24,0.9)';
-  c.fill();
-
-  c.shadowBlur = 0; c.shadowOffsetY = 0;
-
-  /* inner ring */
-  c.beginPath();
-  c.arc(cx, cy, R * 0.77, 0, Math.PI * 2);
-  c.strokeStyle = 'rgba(255,195,195,0.5)';
-  c.lineWidth   = 1.5 * s;
-  c.stroke();
-
-  /* 6-point star */
-  c.beginPath();
-  const pts = 6, ro = R * 0.35, ri = R * 0.17;
-  for (let i = 0; i < pts * 2; i++) {
-    const r2 = i % 2 === 0 ? ro : ri;
-    const a  = (i * Math.PI) / pts - Math.PI / 2;
-    c[i === 0 ? 'moveTo' : 'lineTo'](cx + r2 * Math.cos(a), cy + r2 * Math.sin(a));
-  }
-  c.closePath();
-  c.fillStyle = 'rgba(255,200,200,0.85)';
-  c.fill();
-
-  /* arc text */
-  const txt   = '• STAMPS CAMERA •';
-  const fs    = Math.round(6.5 * s);
-  c.font      = `bold ${fs}px 'Courier New', monospace`;
-  c.fillStyle = 'rgba(255,215,215,0.82)';
-  c.textAlign = 'center';
-
-  const ar    = R * 0.873;
-  const total = Math.PI * 1.73;
-  const start = -Math.PI / 2 - total / 2;
-
-  for (let i = 0; i < txt.length; i++) {
-    const a = start + (i / (txt.length - 1)) * total;
-    c.save();
-    c.translate(cx + ar * Math.cos(a), cy + ar * Math.sin(a));
-    c.rotate(a + Math.PI / 2);
-    c.fillText(txt[i], 0, 0);
-    c.restore();
-  }
-  c.restore();
-}
-
-/* ────────────────────────────────────────────────────────── */
-/* STAMP: Film strip                                         */
-/* ────────────────────────────────────────────────────────── */
-function drawFilm(c, w, h) {
-  const s  = sc(w, h);
-  const sh = 38 * s;   /* strip height */
-  const hw = 13 * s;   /* hole w       */
-  const hh = 16 * s;   /* hole h       */
-  const hg = 19 * s;   /* hole pitch   */
-  const hr = 2.5 * s;  /* hole radius  */
-
-  const rrect = (x, y, rw, rh, r) => {
-    c.beginPath();
-    c.moveTo(x + r, y);
-    c.lineTo(x + rw - r, y);
-    c.arcTo(x + rw, y,    x + rw, y + r,    r);
-    c.lineTo(x + rw, y + rh - r);
-    c.arcTo(x + rw, y + rh, x + rw - r, y + rh, r);
-    c.lineTo(x + r, y + rh);
-    c.arcTo(x, y + rh, x, y + rh - r, r);
-    c.lineTo(x, y + r);
-    c.arcTo(x, y, x + r, y, r);
-    c.closePath();
-  };
-
-  c.save();
-
-  /* strips */
-  c.fillStyle = 'rgba(0,0,0,0.8)';
-  c.fillRect(0, 0, w, sh);
-  c.fillRect(0, h - sh, w, sh);
-
-  /* sprocket holes */
-  c.fillStyle = 'rgba(255,255,255,0.1)';
-  const n = Math.ceil(w / hg) + 1;
-  for (let i = 0; i <= n; i++) {
-    const x  = i * hg - hw / 2;
-    const yt = (sh - hh) / 2;
-    const yb = h - sh + (sh - hh) / 2;
-    rrect(x, yt, hw, hh, hr); c.fill();
-    rrect(x, yb, hw, hh, hr); c.fill();
-  }
-
-  /* label */
-  const fs    = Math.round(7.5 * s);
-  c.font      = `bold ${fs}px 'Courier New', monospace`;
-  c.fillStyle = 'rgba(255,210,55,0.9)';
-  c.textAlign = 'right';
-  c.fillText('STAMPA 400TX  ■  35mm', w - 10 * s, h - sh + sh * 0.64);
-
-  c.restore();
-}
-
-/* ────────────────────────────────────────────────────────── */
-/* STAMP: Vignette                                           */
-/* ────────────────────────────────────────────────────────── */
-function drawVignette(c, w, h) {
-  const g = c.createRadialGradient(
-    w / 2, h / 2, Math.min(w, h) * 0.26,
-    w / 2, h / 2, Math.max(w, h) * 0.8
-  );
-  g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(1, 'rgba(0,0,0,0.72)');
-  c.save();
-  c.fillStyle = g;
-  c.fillRect(0, 0, w, h);
-  c.restore();
-}
-
-/* ── Camera ──────────────────────────────────────────────── */
-async function startCamera() {
-  try {
-    if (S.stream) S.stream.getTracks().forEach(t => t.stop());
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: S.facing,
-        width : { ideal: 1920 },
-        height: { ideal: 1080 },
-      },
-      audio: false,
-    });
-    S.stream    = stream;
-    video.srcObject = stream;
-    video.classList.toggle('mirrored', S.facing === 'user');
-    await video.play();
-    return true;
-  } catch (e) {
-    showToast('Câmera indisponível: ' + (e.message || e));
-    return false;
-  }
-}
-
-/* ── Canvas sizing ───────────────────────────────────────── */
-function sizeCanvas() {
-  const vf    = $('viewfinder');
-  overlay.width  = vf.clientWidth;
-  overlay.height = vf.clientHeight;
-}
-
-/* ── Render loop ─────────────────────────────────────────── */
-function render() {
-  const w = overlay.width, h = overlay.height;
-  ctx.clearRect(0, 0, w, h);
-  STAMPS.forEach(st => { if (S.active.has(st.id)) st.fn(ctx, w, h); });
-  S.raf = requestAnimationFrame(render);
-}
-
-/* ── Capture ─────────────────────────────────────────────── */
-function capture() {
-  if (!S.stream) return;
-
-  /* flash */
-  flashEl.style.transition = 'none';
-  flashEl.style.opacity    = '0.82';
-  requestAnimationFrame(() => {
-    flashEl.style.transition = 'opacity 0.22s ease-out';
-    flashEl.style.opacity    = '0';
-  });
-
-  /* burst ring */
-  burstEl.classList.remove('pop');
-  void burstEl.offsetWidth;
-  burstEl.classList.add('pop');
-
-  const vw = video.videoWidth  || overlay.width;
-  const vh = video.videoHeight || overlay.height;
-
-  const cap     = document.createElement('canvas');
-  cap.width     = vw;
-  cap.height    = vh;
-  const cc      = cap.getContext('2d');
-
-  /* mirror front cam */
-  if (S.facing === 'user') {
-    cc.translate(vw, 0);
-    cc.scale(-1, 1);
-  }
-  cc.drawImage(video, 0, 0, vw, vh);
-  if (S.facing === 'user') { cc.setTransform(1,0,0,1,0,0); }
-
-  STAMPS.forEach(st => { if (S.active.has(st.id)) st.fn(cc, vw, vh); });
-
-  const url = cap.toDataURL('image/jpeg', 0.93);
-  S.photos.unshift(url);
-  updateThumb();
-  updateGrid();
-
-  if (navigator.vibrate) navigator.vibrate(22);
-}
-
-/* ── Gallery helpers ──────────────────────────────────────── */
-function updateThumb() {
-  if (!S.photos.length) return;
-  thumbImg.src          = S.photos[0];
-  thumbImg.style.display = 'block';
-  $('gal-thumb').querySelector('.empty').style.display = 'none';
-  thumbCnt.style.display  = S.photos.length > 1 ? 'block' : 'none';
-  thumbCnt.textContent    = S.photos.length;
-}
-
-function updateGrid() {
-  galSub.textContent = `${S.photos.length} foto${S.photos.length !== 1 ? 's' : ''}`;
-  galEmpty.style.display = S.photos.length ? 'none' : 'flex';
-  galGrid.innerHTML  = '';
-  S.photos.forEach((url, i) => {
-    const div = document.createElement('div');
-    div.className = 'gal-item';
-    div.innerHTML = `<img src="${url}" alt="Foto ${i + 1}">
-      <div class="dl"><div class="dl-btn">⬇</div></div>`;
-    div.addEventListener('click', () => dlPhoto(url));
-    galGrid.appendChild(div);
+/* gallery */
+function refreshGallery(){
+  const grid=$('gal-grid'),empty=$('gal-empty'),count=$('gal-count');
+  count.textContent=`${S.photos.length} stamp${S.photos.length!==1?'s':''}`;
+  empty.style.display=S.photos.length?'none':'flex';
+  grid.style.display=S.photos.length?'grid':'none';
+  grid.innerHTML='';
+  S.photos.forEach(({url,canvas},i)=>{
+    const wrap=document.createElement('div');wrap.className='stamp-item';
+    const cv=document.createElement('canvas');cv.width=canvas.width;cv.height=canvas.height;
+    cv.getContext('2d').drawImage(canvas,0,0);
+    wrap.appendChild(cv);
+    wrap.onclick=()=>{const a=document.createElement('a');a.href=url;a.download=`stampa-${i+1}.png`;document.body.appendChild(a);a.click();document.body.removeChild(a);};
+    grid.appendChild(wrap);
   });
 }
-
-function dlPhoto(url) {
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `stamps-${Date.now()}.jpg`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
-/* ── Toast ───────────────────────────────────────────────── */
-let toastTimer;
-function showToast(msg) {
-  toastEl.textContent = msg;
-  toastEl.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 4000);
-}
-
-/* ── Stamp bar builder ───────────────────────────────────── */
-function buildBar() {
-  const bar = $('stamps-bar');
-  STAMPS.forEach(st => {
-    const btn = document.createElement('button');
-    btn.className = 'stamp-btn' + (S.active.has(st.id) ? ' on' : '');
-    btn.id        = `sb-${st.id}`;
-    btn.title     = st.lbl;
-    btn.innerHTML = `<span class="icon">${st.icon}</span><span class="lbl">${st.lbl}</span>`;
-    btn.addEventListener('click', () => {
-      S.active.has(st.id) ? S.active.delete(st.id) : S.active.add(st.id);
-      btn.classList.toggle('on');
-    });
-    bar.appendChild(btn);
-  });
-}
-
-/* ── Flip ────────────────────────────────────────────────── */
-async function flip() {
-  S.facing = S.facing === 'environment' ? 'user' : 'environment';
-  video.style.opacity = '0.5';
-  await startCamera();
-  video.style.opacity = '1';
-}
-
-/* ── Events ──────────────────────────────────────────────── */
-$('allow-btn').addEventListener('click', async () => {
-  const ok = await startCamera();
-  if (ok) {
-    permEl.classList.add('gone');
-    sizeCanvas();
-    render();
-  }
-});
-
-$('shutter').addEventListener('click', capture);
-
-$('flip-btn').addEventListener('click', flip);
-$('flip-top').addEventListener('click', flip);
-
-$('gal-thumb').addEventListener('click', () => {
-  galMdl.classList.add('open');
-  updateGrid();
-});
-$('gal-close').addEventListener('click', () => galMdl.classList.remove('open'));
-
-$('back-btn').addEventListener('click', () => {
-  if (history.length > 1) history.back();
-  else window.location.href = '../';
-});
-
-window.addEventListener('resize', sizeCanvas);
-
-/* ── Boot ────────────────────────────────────────────────── */
-buildBar();
-
-/* empty gallery state */
-galEmpty.style.display = 'flex';
 </script>
-
 </body>
 </html>
