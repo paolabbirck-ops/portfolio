@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Stamps Camera</title>
+<link rel="stylesheet" href="https://use.typekit.net/ykk1swv.css">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #0a0a0a;
+  font-family: 'aktiv-grotesk', 'Helvetica Neue', Arial, sans-serif;
+  color: #fff;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Desktop backdrop ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    #111 0px, #111 1px,
+    transparent 1px, transparent 12px
+  );
+  pointer-events: none;
+}
+
+/* ── App shell ── */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 80px rgba(0,0,0,0.8);
+}
+
+/* ── Topbar ── */
+#topbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  z-index: 20;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
+}
+
+.logo {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.top-btn {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.top-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Viewfinder ── */
+#viewfinder {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  bottom: 152px;
+  overflow: hidden;
+  background: #111;
+}
+
+#video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(1);
+  transition: opacity 0.2s;
+}
+#video.mirrored { transform: scaleX(-1); }
+
+#overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+}
+
+/* ── Controls ── */
+#controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 152px;
+  background: rgba(8,8,8,0.94);
+  backdrop-filter: blur(28px);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0 max(20px, env(safe-area-inset-bottom, 20px));
+  gap: 14px;
+}
+
+/* ── Stamps bar ── */
+#stamps-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 0 18px;
+  width: 100%;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#stamps-bar::-webkit-scrollbar { display: none; }
+
+.stamp-btn {
+  flex-shrink: 0;
+  width: 56px; height: 46px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: border-color 0.15s, background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.stamp-btn .icon { font-size: 17px; line-height: 1; }
+.stamp-btn .lbl  {
+  font-size: 7.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: rgba(255,255,255,0.35);
+  transition: color 0.15s;
+}
+.stamp-btn.on {
+  border-color: rgba(255,255,255,0.65);
+  background: rgba(255,255,255,0.12);
+}
+.stamp-btn.on .lbl { color: rgba(255,255,255,0.8); }
+
+/* ── Capture row ── */
+#capture-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0 28px;
+}
+
+/* Gallery thumb */
+#gal-thumb {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.2);
+  overflow: hidden;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  position: relative;
+  transition: opacity 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#gal-thumb:hover { opacity: 0.82; }
+#gal-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: none;
+}
+#gal-thumb .empty {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; color: rgba(255,255,255,0.18);
+}
+#gal-thumb .count {
+  position: absolute;
+  bottom: 4px; right: 4px;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 9px; font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: none;
+  letter-spacing: 0.03em;
+}
+
+/* Capture button */
+#shutter {
+  width: 74px; height: 74px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.88);
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+#shutter::after {
+  content: '';
+  width: 60px; height: 60px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.1s;
+}
+#shutter:active               { transform: scale(0.9); }
+#shutter:active::after        { transform: scale(0.9); }
+
+/* Flip button */
+#flip-btn {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.09);
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#flip-btn:hover { background: rgba(255,255,255,0.16); }
+
+/* ── Flash ── */
+#flash {
+  position: absolute; inset: 0;
+  background: #fff;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 40;
+}
+
+/* ── Permission screen ── */
+#perm {
+  position: absolute; inset: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  z-index: 200;
+  padding: 48px 36px;
+  text-align: center;
+}
+#perm.gone { display: none; }
+
+.perm-icon {
+  width: 92px; height: 92px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+  margin-bottom: 6px;
+}
+.perm-h    { font-size: 24px; font-weight: 700; letter-spacing: -0.01em; }
+.perm-p    { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 1.75; max-width: 280px; }
+#allow-btn {
+  padding: 14px 44px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 100px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: opacity 0.15s;
+}
+#allow-btn:hover { opacity: 0.88; }
+
+/* ── Gallery modal ── */
+#gallery {
+  position: absolute; inset: 0;
+  background: #000;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+}
+#gallery.open {
+  display: flex;
+  animation: up 0.26s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0);    }
+}
+
+#gal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+#gal-header h2   { font-size: 17px; font-weight: 700; }
+#gal-subtitle    { font-size: 12px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+#gal-close {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: none; color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#gal-grid {
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  align-content: start;
+}
+
+.gal-item {
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  background: #111;
+}
+.gal-item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.gal-item .dl {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0);
+  display: flex; align-items: flex-end; justify-content: flex-end;
+  padding: 8px;
+  transition: background 0.18s;
+}
+.gal-item:hover .dl { background: rgba(0,0,0,0.32); }
+.gal-item .dl-btn {
+  width: 30px; height: 30px;
+  background: rgba(0,0,0,0.55);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.18s;
+  backdrop-filter: blur(4px);
+}
+.gal-item:hover .dl-btn { opacity: 1; }
+
+/* ── Empty gallery ── */
+#gal-empty {
+  display: none;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: rgba(255,255,255,0.25);
+  font-size: 13px;
+}
+#gal-empty .big { font-size: 44px; }
+
+/* ── Toast ── */
+#toast {
+  position: absolute;
+  bottom: 164px; left: 16px; right: 16px;
+  background: rgba(220,50,50,0.92);
+  color: #fff;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  text-align: center;
+  z-index: 300;
+  display: none;
+  backdrop-filter: blur(8px);
+}
+#toast.show {
+  display: block;
+  animation: fadeUp 0.2s ease-out;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Capture burst ring ── */
+#burst {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 35;
+  border: 0px solid rgba(255,255,255,0);
+  border-radius: 0;
+  transition: none;
+}
+#burst.pop {
+  animation: burstAnim 0.35s ease-out forwards;
+}
+@keyframes burstAnim {
+  0%   { box-shadow: inset 0 0 0 0px rgba(255,255,255,0.35); }
+  40%  { box-shadow: inset 0 0 0 18px rgba(255,255,255,0.15); }
+  100% { box-shadow: inset 0 0 0 0px rgba(255,255,255,0); }
+}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Permission screen -->
+  <div id="perm">
+    <div class="perm-icon">📷</div>
+    <div class="perm-h">Stamps Camera</div>
+    <p class="perm-p">Carimbos vintage em tempo real — data 90s, selos postais, lacres, película e vinheta.</p>
+    <button id="allow-btn">Permitir câmera</button>
+  </div>
+
+  <!-- Flash + burst -->
+  <div id="flash"></div>
+  <div id="burst"></div>
+
+  <!-- Toast -->
+  <div id="toast"></div>
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <button class="top-btn" id="back-btn" title="Voltar">←</button>
+    <span class="logo">Stamps</span>
+    <button class="top-btn" id="flip-top" title="Virar câmera">↺</button>
+  </div>
+
+  <!-- Viewfinder -->
+  <div id="viewfinder">
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+  </div>
+
+  <!-- Controls -->
+  <div id="controls">
+    <div id="stamps-bar"></div>
+    <div id="capture-row">
+      <div id="gal-thumb" title="Ver galeria">
+        <div class="empty">⊡</div>
+        <img id="thumb-img" alt="">
+        <div class="count" id="thumb-count"></div>
+      </div>
+      <button id="shutter" title="Capturar foto"></button>
+      <button id="flip-btn" title="Virar câmera">↺</button>
+    </div>
+  </div>
+
+  <!-- Gallery modal -->
+  <div id="gallery">
+    <div id="gal-header">
+      <div>
+        <h2>Galeria</h2>
+        <div id="gal-subtitle">0 fotos</div>
+      </div>
+      <button id="gal-close">✕</button>
+    </div>
+    <div id="gal-empty">
+      <div class="big">📷</div>
+      <span>Nenhuma foto ainda</span>
+    </div>
+    <div id="gal-grid"></div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+
+/* ── State ──────────────────────────────────────────────── */
+const S = {
+  stream   : null,
+  facing   : 'environment',
+  active   : new Set(['date']),
+  photos   : [],
+  raf      : null,
+};
+
+/* ── DOM ─────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const video    = $('video');
+const overlay  = $('overlay');
+const ctx      = overlay.getContext('2d');
+const permEl   = $('perm');
+const flashEl  = $('flash');
+const burstEl  = $('burst');
+const toastEl  = $('toast');
+const galMdl   = $('gallery');
+const galGrid  = $('gal-grid');
+const galSub   = $('gal-subtitle');
+const galEmpty = $('gal-empty');
+const thumbImg = $('thumb-img');
+const thumbCnt = $('thumb-count');
+
+/* ── Stamp definitions ───────────────────────────────────── */
+const STAMPS = [
+  { id: 'date',     icon: '📅', lbl: 'Data',    fn: drawDate     },
+  { id: 'post',     icon: '✉',  lbl: 'Selo',    fn: drawPost     },
+  { id: 'seal',     icon: '🔴', lbl: 'Lacre',   fn: drawSeal     },
+  { id: 'film',     icon: '🎞', lbl: 'Filme',   fn: drawFilm     },
+  { id: 'vignette', icon: '◉',  lbl: 'Vinheta', fn: drawVignette },
+];
+
+/* ── Scale helper ────────────────────────────────────────── */
+const sc = (w, h) => Math.min(w, h) / 400;
+
+/* ────────────────────────────────────────────────────────── */
+/* STAMP: Vintage date (90s camera)                          */
+/* ────────────────────────────────────────────────────────── */
+function drawDate(c, w, h) {
+  const s   = sc(w, h);
+  const pad = 18 * s;
+  const now = new Date();
+  const dd  = String(now.getDate()).padStart(2, '0');
+  const mon = ['JAN','FEB','MAR','APR','MAY','JUN',
+               'JUL','AUG','SEP','OCT','NOV','DEC'][now.getMonth()];
+  const yr  = now.getFullYear();
+  const hh  = String(now.getHours()).padStart(2, '0');
+  const mm  = String(now.getMinutes()).padStart(2, '0');
+
+  const fs  = Math.round(17 * s);
+  c.save();
+  c.font      = `bold ${fs}px 'Courier New', monospace`;
+  c.textAlign = 'right';
+
+  /* amber glow */
+  c.shadowColor  = 'rgba(255,155,0,0.95)';
+  c.shadowBlur   = Math.round(12 * s);
+  c.fillStyle    = '#FFA040';
+  c.fillText(`${dd} ${mon} ${yr}`, w - pad, h - pad - fs * 1.35);
+
+  c.shadowColor  = 'rgba(255,155,0,0.7)';
+  c.shadowBlur   = Math.round(8 * s);
+  c.fillText(`${hh}:${mm}`, w - pad, h - pad);
+  c.restore();
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* STAMP: Postage stamp border                               */
+/* ────────────────────────────────────────────────────────── */
+function drawPost(c, w, h) {
+  const s   = sc(w, h);
+  const mg  = 20 * s;
+  const gap = 14 * s;
+  const r   = 4.2 * s;
+
+  c.save();
+  c.fillStyle = 'rgba(255,255,255,0.78)';
+
+  const row = (x1, y1, x2, y2, horiz) => {
+    const len  = horiz ? x2 - x1 : y2 - y1;
+    const n    = Math.max(2, Math.round(len / gap));
+    const step = len / n;
+    for (let i = 0; i <= n; i++) {
+      const px = horiz ? x1 + i * step : x1;
+      const py = horiz ? y1            : y1 + i * step;
+      c.beginPath();
+      c.arc(px, py, r, 0, Math.PI * 2);
+      c.fill();
+    }
+  };
+
+  const o = gap / 2;
+  row(mg + o, mg,      w - mg - o, mg,      true);   /* top    */
+  row(mg + o, h - mg,  w - mg - o, h - mg,  true);   /* bottom */
+  row(mg,     mg + o,  mg,         h - mg - o, false);/* left   */
+  row(w - mg, mg + o,  w - mg,     h - mg - o, false);/* right  */
+  c.restore();
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* STAMP: Wax seal                                           */
+/* ────────────────────────────────────────────────────────── */
+function drawSeal(c, w, h) {
+  const s  = sc(w, h);
+  const cx = w - 62 * s;
+  const cy = 72 * s;      /* below topbar safe zone */
+  const R  = 36 * s;
+
+  c.save();
+
+  /* shadow */
+  c.shadowColor   = 'rgba(0,0,0,0.45)';
+  c.shadowBlur    = 14 * s;
+  c.shadowOffsetY = 4 * s;
+
+  /* body */
+  c.beginPath();
+  c.arc(cx, cy, R, 0, Math.PI * 2);
+  c.fillStyle = 'rgba(172,24,24,0.9)';
+  c.fill();
+
+  c.shadowBlur = 0; c.shadowOffsetY = 0;
+
+  /* inner ring */
+  c.beginPath();
+  c.arc(cx, cy, R * 0.77, 0, Math.PI * 2);
+  c.strokeStyle = 'rgba(255,195,195,0.5)';
+  c.lineWidth   = 1.5 * s;
+  c.stroke();
+
+  /* 6-point star */
+  c.beginPath();
+  const pts = 6, ro = R * 0.35, ri = R * 0.17;
+  for (let i = 0; i < pts * 2; i++) {
+    const r2 = i % 2 === 0 ? ro : ri;
+    const a  = (i * Math.PI) / pts - Math.PI / 2;
+    c[i === 0 ? 'moveTo' : 'lineTo'](cx + r2 * Math.cos(a), cy + r2 * Math.sin(a));
+  }
+  c.closePath();
+  c.fillStyle = 'rgba(255,200,200,0.85)';
+  c.fill();
+
+  /* arc text */
+  const txt   = '• STAMPS CAMERA •';
+  const fs    = Math.round(6.5 * s);
+  c.font      = `bold ${fs}px 'Courier New', monospace`;
+  c.fillStyle = 'rgba(255,215,215,0.82)';
+  c.textAlign = 'center';
+
+  const ar    = R * 0.873;
+  const total = Math.PI * 1.73;
+  const start = -Math.PI / 2 - total / 2;
+
+  for (let i = 0; i < txt.length; i++) {
+    const a = start + (i / (txt.length - 1)) * total;
+    c.save();
+    c.translate(cx + ar * Math.cos(a), cy + ar * Math.sin(a));
+    c.rotate(a + Math.PI / 2);
+    c.fillText(txt[i], 0, 0);
+    c.restore();
+  }
+  c.restore();
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* STAMP: Film strip                                         */
+/* ────────────────────────────────────────────────────────── */
+function drawFilm(c, w, h) {
+  const s  = sc(w, h);
+  const sh = 38 * s;   /* strip height */
+  const hw = 13 * s;   /* hole w       */
+  const hh = 16 * s;   /* hole h       */
+  const hg = 19 * s;   /* hole pitch   */
+  const hr = 2.5 * s;  /* hole radius  */
+
+  const rrect = (x, y, rw, rh, r) => {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + rw - r, y);
+    c.arcTo(x + rw, y,    x + rw, y + r,    r);
+    c.lineTo(x + rw, y + rh - r);
+    c.arcTo(x + rw, y + rh, x + rw - r, y + rh, r);
+    c.lineTo(x + r, y + rh);
+    c.arcTo(x, y + rh, x, y + rh - r, r);
+    c.lineTo(x, y + r);
+    c.arcTo(x, y, x + r, y, r);
+    c.closePath();
+  };
+
+  c.save();
+
+  /* strips */
+  c.fillStyle = 'rgba(0,0,0,0.8)';
+  c.fillRect(0, 0, w, sh);
+  c.fillRect(0, h - sh, w, sh);
+
+  /* sprocket holes */
+  c.fillStyle = 'rgba(255,255,255,0.1)';
+  const n = Math.ceil(w / hg) + 1;
+  for (let i = 0; i <= n; i++) {
+    const x  = i * hg - hw / 2;
+    const yt = (sh - hh) / 2;
+    const yb = h - sh + (sh - hh) / 2;
+    rrect(x, yt, hw, hh, hr); c.fill();
+    rrect(x, yb, hw, hh, hr); c.fill();
+  }
+
+  /* label */
+  const fs    = Math.round(7.5 * s);
+  c.font      = `bold ${fs}px 'Courier New', monospace`;
+  c.fillStyle = 'rgba(255,210,55,0.9)';
+  c.textAlign = 'right';
+  c.fillText('STAMPA 400TX  ■  35mm', w - 10 * s, h - sh + sh * 0.64);
+
+  c.restore();
+}
+
+/* ────────────────────────────────────────────────────────── */
+/* STAMP: Vignette                                           */
+/* ────────────────────────────────────────────────────────── */
+function drawVignette(c, w, h) {
+  const g = c.createRadialGradient(
+    w / 2, h / 2, Math.min(w, h) * 0.26,
+    w / 2, h / 2, Math.max(w, h) * 0.8
+  );
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.72)');
+  c.save();
+  c.fillStyle = g;
+  c.fillRect(0, 0, w, h);
+  c.restore();
+}
+
+/* ── Camera ──────────────────────────────────────────────── */
+async function startCamera() {
+  try {
+    if (S.stream) S.stream.getTracks().forEach(t => t.stop());
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: S.facing,
+        width : { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+      audio: false,
+    });
+    S.stream    = stream;
+    video.srcObject = stream;
+    video.classList.toggle('mirrored', S.facing === 'user');
+    await video.play();
+    return true;
+  } catch (e) {
+    showToast('Câmera indisponível: ' + (e.message || e));
+    return false;
+  }
+}
+
+/* ── Canvas sizing ───────────────────────────────────────── */
+function sizeCanvas() {
+  const vf    = $('viewfinder');
+  overlay.width  = vf.clientWidth;
+  overlay.height = vf.clientHeight;
+}
+
+/* ── Render loop ─────────────────────────────────────────── */
+function render() {
+  const w = overlay.width, h = overlay.height;
+  ctx.clearRect(0, 0, w, h);
+  STAMPS.forEach(st => { if (S.active.has(st.id)) st.fn(ctx, w, h); });
+  S.raf = requestAnimationFrame(render);
+}
+
+/* ── Capture ─────────────────────────────────────────────── */
+function capture() {
+  if (!S.stream) return;
+
+  /* flash */
+  flashEl.style.transition = 'none';
+  flashEl.style.opacity    = '0.82';
+  requestAnimationFrame(() => {
+    flashEl.style.transition = 'opacity 0.22s ease-out';
+    flashEl.style.opacity    = '0';
+  });
+
+  /* burst ring */
+  burstEl.classList.remove('pop');
+  void burstEl.offsetWidth;
+  burstEl.classList.add('pop');
+
+  const vw = video.videoWidth  || overlay.width;
+  const vh = video.videoHeight || overlay.height;
+
+  const cap     = document.createElement('canvas');
+  cap.width     = vw;
+  cap.height    = vh;
+  const cc      = cap.getContext('2d');
+
+  /* mirror front cam */
+  if (S.facing === 'user') {
+    cc.translate(vw, 0);
+    cc.scale(-1, 1);
+  }
+  cc.drawImage(video, 0, 0, vw, vh);
+  if (S.facing === 'user') { cc.setTransform(1,0,0,1,0,0); }
+
+  STAMPS.forEach(st => { if (S.active.has(st.id)) st.fn(cc, vw, vh); });
+
+  const url = cap.toDataURL('image/jpeg', 0.93);
+  S.photos.unshift(url);
+  updateThumb();
+  updateGrid();
+
+  if (navigator.vibrate) navigator.vibrate(22);
+}
+
+/* ── Gallery helpers ──────────────────────────────────────── */
+function updateThumb() {
+  if (!S.photos.length) return;
+  thumbImg.src          = S.photos[0];
+  thumbImg.style.display = 'block';
+  $('gal-thumb').querySelector('.empty').style.display = 'none';
+  thumbCnt.style.display  = S.photos.length > 1 ? 'block' : 'none';
+  thumbCnt.textContent    = S.photos.length;
+}
+
+function updateGrid() {
+  galSub.textContent = `${S.photos.length} foto${S.photos.length !== 1 ? 's' : ''}`;
+  galEmpty.style.display = S.photos.length ? 'none' : 'flex';
+  galGrid.innerHTML  = '';
+  S.photos.forEach((url, i) => {
+    const div = document.createElement('div');
+    div.className = 'gal-item';
+    div.innerHTML = `<img src="${url}" alt="Foto ${i + 1}">
+      <div class="dl"><div class="dl-btn">⬇</div></div>`;
+    div.addEventListener('click', () => dlPhoto(url));
+    galGrid.appendChild(div);
+  });
+}
+
+function dlPhoto(url) {
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `stamps-${Date.now()}.jpg`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ── Toast ───────────────────────────────────────────────── */
+let toastTimer;
+function showToast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 4000);
+}
+
+/* ── Stamp bar builder ───────────────────────────────────── */
+function buildBar() {
+  const bar = $('stamps-bar');
+  STAMPS.forEach(st => {
+    const btn = document.createElement('button');
+    btn.className = 'stamp-btn' + (S.active.has(st.id) ? ' on' : '');
+    btn.id        = `sb-${st.id}`;
+    btn.title     = st.lbl;
+    btn.innerHTML = `<span class="icon">${st.icon}</span><span class="lbl">${st.lbl}</span>`;
+    btn.addEventListener('click', () => {
+      S.active.has(st.id) ? S.active.delete(st.id) : S.active.add(st.id);
+      btn.classList.toggle('on');
+    });
+    bar.appendChild(btn);
+  });
+}
+
+/* ── Flip ────────────────────────────────────────────────── */
+async function flip() {
+  S.facing = S.facing === 'environment' ? 'user' : 'environment';
+  video.style.opacity = '0.5';
+  await startCamera();
+  video.style.opacity = '1';
+}
+
+/* ── Events ──────────────────────────────────────────────── */
+$('allow-btn').addEventListener('click', async () => {
+  const ok = await startCamera();
+  if (ok) {
+    permEl.classList.add('gone');
+    sizeCanvas();
+    render();
+  }
+});
+
+$('shutter').addEventListener('click', capture);
+
+$('flip-btn').addEventListener('click', flip);
+$('flip-top').addEventListener('click', flip);
+
+$('gal-thumb').addEventListener('click', () => {
+  galMdl.classList.add('open');
+  updateGrid();
+});
+$('gal-close').addEventListener('click', () => galMdl.classList.remove('open'));
+
+$('back-btn').addEventListener('click', () => {
+  if (history.length > 1) history.back();
+  else window.location.href = '../';
+});
+
+window.addEventListener('resize', sizeCanvas);
+
+/* ── Boot ────────────────────────────────────────────────── */
+buildBar();
+
+/* empty gallery state */
+galEmpty.style.display = 'flex';
+</script>
+
+</body>
+</html>
