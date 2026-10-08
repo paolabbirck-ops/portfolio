@@ -1,0 +1,5 @@
+{
+  "redirects": [
+    { "source": "/context", "destination": "/context/", "permanent": true }
+  ]
+}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Context — Dress the context</title>
+  <meta name="description" content="Context is a dress-code platform that works like a personal stylist: outfit suggestions for every team, occasion and kind of weather." />
+  <meta name="theme-color" content="#07080b" />
+  <meta property="og:title" content="Context — Dress the context" />
+  <meta property="og:description" content="A dress-code platform that works like a personal stylist: outfit suggestions for every team, occasion and kind of weather." />
+  <meta property="og:url" content="https://www.paolabertoni.com.br/context/" />
+  <meta property="og:image" content="https://www.paolabertoni.com.br/context/assets/og.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200..700;1,200..500&display=swap" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Skip to content</a>
+
+  <!-- ============ HEADER ============ -->
+  <header class="header" id="header">
+    <div class="header__inner">
+      <div class="header__brand">
+        <a href="#" class="header__logo-link" id="logo-home" aria-label="Context — back to start">
+          <img src="assets/logo_context.svg" alt="Context" class="header__logo" />
+        </a>
+        <span class="header__divider" aria-hidden="true"></span>
+        <span class="header__title">Your style. Your moment. Your context.</span>
+      </div>
+
+      <nav class="header__nav" aria-label="Main navigation">
+        <a href="#diretrizes" class="header__link" id="link-diretrizes">Guidelines</a>
+        <button type="button" class="btn btn--ghost header__edit" id="btn-editar-filtros" hidden>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M2 4.5h12M4.5 8h7M7 11.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Edit filters
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+
+    <!-- ============ VIEW: HOME / FILTERS ============ -->
+    <section class="view view--home is-active" id="view-home" aria-labelledby="home-titulo">
+      <div class="orb" aria-hidden="true"></div>
+      <div class="hero">
+        <p class="eyebrow reveal" style="--d:0">Personal style for work</p>
+        <h1 class="hero__title reveal" style="--d:1" id="home-titulo">
+          Dress for<br /><em>the context.</em>
+        </h1>
+        <p class="hero__sub reveal" style="--d:2">
+          Outfit suggestions shaped by your team, the occasion and the weather.
+          Choose the filters below and find looks that fit your day.
+        </p>
+      </div>
+
+      <form class="filter-card reveal" style="--d:3" id="form-filtros" novalidate>
+        <div class="filter-card__grid" id="form-filtros-campos">
+          <!-- selects rendered by JS -->
+        </div>
+        <div class="filter-card__footer">
+          <p class="filter-card__hint" id="form-hint" aria-live="polite">
+            <span id="form-progress">0 of 5 filters selected</span>
+          </p>
+          <button type="submit" class="btn btn--primary btn--lg" id="btn-ver-sugestoes">
+            See suggestions
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </form>
+
+      <section class="guidelines reveal" style="--d:4" id="diretrizes" aria-labelledby="diretrizes-titulo">
+        <h2 class="guidelines__title" id="diretrizes-titulo">The four levels of dress</h2>
+        <div class="guidelines__grid guidelines__grid--levels">
+          <article class="guideline">
+            <span class="guideline__num">01</span>
+            <h3>Full formal</h3>
+            <p>Suit and tie, or a structured blazer with a skirt or tailored trousers. Plain fabrics in sober tones, a buttoned collar and leather shoes. When it's cold, a wool overcoat on top.</p>
+          </article>
+          <article class="guideline">
+            <span class="guideline__num">02</span>
+            <h3>Formal, no tie</h3>
+            <p>The same tailoring without the tie: a jacket over an open-collar shirt, or over a fine knit or sweater. It's a menswear level — in womenswear, these occasions call for full formal or business casual.</p>
+          </article>
+          <article class="guideline">
+            <span class="guideline__num">03</span>
+            <h3>Business casual</h3>
+            <p>Tailored trousers or a skirt with a shirt, blouse or knit. Vests, cardigans and coats go on top. No tie, and the jacket is optional.</p>
+          </article>
+          <article class="guideline">
+            <span class="guideline__num">04</span>
+            <h3>Smart casual</h3>
+            <p>A knit, polo or well-cut T-shirt with tailored trousers or dark, straight-leg jeans. Relaxed, for the occasional moment — like happy hour.</p>
+          </article>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ VIEW: RESULTS ============ -->
+    <section class="view view--results" id="view-results" aria-labelledby="results-titulo" hidden>
+      <div class="results__head">
+        <div>
+          <p class="eyebrow">Suggestions</p>
+          <h1 class="results__title" id="results-titulo">Looks for you</h1>
+        </div>
+        <p class="results__count" id="results-count" aria-live="polite"></p>
+      </div>
+
+      <button type="button" class="chips" id="chips" aria-label="Active filters — click to edit">
+        <!-- chips rendered by JS -->
+      </button>
+
+      <p class="results__styledesc" id="results-styledesc"></p>
+
+      <div class="cats" id="cats" role="tablist" aria-label="Suggestion categories">
+        <!-- tabs rendered by JS -->
+      </div>
+
+      <div class="results__grid" id="results-grid" role="tabpanel" tabindex="0">
+        <!-- cards rendered by JS -->
+      </div>
+
+      <div class="results__related" id="results-related" hidden>
+        <h2 class="results__related-title">You might also consider</h2>
+        <div class="results__grid results__grid--related" id="results-related-grid"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ MODAL: RULE NOTICE ============ -->
+  <div class="modal-overlay" id="jeans-overlay" hidden></div>
+  <div class="modal" id="jeans-modal" role="dialog" aria-modal="true" aria-labelledby="jeans-titulo" aria-describedby="jeans-texto" hidden>
+    <button type="button" class="btn-icon modal__fechar" id="jeans-fechar" aria-label="Close notice">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="modal__icone" id="jeans-icone" aria-hidden="true"></div>
+    <p class="eyebrow" id="jeans-eyebrow">Before you choose</p>
+    <h2 class="modal__title" id="jeans-titulo">The jeans rule</h2>
+    <p class="modal__text" id="jeans-texto">
+      In smart casual, jeans are welcome <b>only in straight and wide-leg cuts</b>,
+      in the washes shown in the examples. The leg should fall loose from hip to hem.
+    </p>
+    <button type="button" class="btn btn--primary btn--lg modal__btn" id="jeans-ok">Got it</button>
+  </div>
+
+  <!-- ============ DRAWER: EDIT FILTERS ============ -->
+  <div class="drawer-overlay" id="drawer-overlay" hidden></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-titulo" hidden>
+    <header class="drawer__head">
+      <div>
+        <p class="eyebrow">Filters</p>
+        <h2 class="drawer__title" id="drawer-titulo">Edit filters</h2>
+      </div>
+      <button type="button" class="btn-icon" id="drawer-close" aria-label="Close filters panel">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <form class="drawer__body" id="form-drawer" novalidate>
+      <div class="drawer__fields" id="form-drawer-campos">
+        <!-- selects rendered by JS -->
+      </div>
+      <footer class="drawer__footer">
+        <button type="button" class="btn btn--ghost btn--lg" id="drawer-cancel">Cancel</button>
+        <button type="submit" class="btn btn--primary btn--lg" id="drawer-apply">Apply filters</button>
+      </footer>
+    </form>
+  </aside>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <img src="assets/logo_context.svg" alt="" class="footer__logo" />
+      <p class="footer__text">Dress the context · Personal style for work</p>
+    </div>
+  </footer>
+
+  <script defer src="js/variantes-data.js"></script>
+  <script defer src="js/looks-data.js"></script>
+  <script defer src="js/vestidos-data.js"></script>
+  <script defer src="js/unhas-data.js"></script>
+  <script defer src="js/sapatos-data.js"></script>
+  <script defer src="js/pecas-data.js"></script>
+  <script defer src="js/acessorios-data.js"></script>
+  <script defer src="js/app.js"></script>
+</body>
+</html>
