@@ -33,12 +33,6 @@
 
       <nav class="header__nav" aria-label="Main navigation">
         <a href="#diretrizes" class="header__link" id="link-diretrizes">Guidelines</a>
-        <button type="button" class="btn btn--ghost header__edit" id="btn-editar-filtros" hidden>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M2 4.5h12M4.5 8h7M7 11.5h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-          Edit filters
-        </button>
       </nav>
     </div>
   </header>
@@ -55,20 +49,20 @@
         </h1>
         <p class="hero__sub reveal" style="--d:2">
           Outfit suggestions shaped by your team, the occasion and the weather.
-          Choose the filters below and find looks that fit your day.
+          Tell us about your day — we’ll tell you the dress code and show you the looks.
         </p>
       </div>
 
-      <form class="filter-card reveal" style="--d:3" id="form-filtros" novalidate>
-        <div class="filter-card__grid" id="form-filtros-campos">
-          <!-- selects rendered by JS -->
-        </div>
-        <div class="filter-card__footer">
-          <p class="filter-card__hint" id="form-hint" aria-live="polite">
-            <span id="form-progress">0 of 5 filters selected</span>
-          </p>
-          <button type="submit" class="btn btn--primary btn--lg" id="btn-ver-sugestoes">
-            See suggestions
+      <form class="ask reveal" style="--d:3" id="ask-home" novalidate aria-labelledby="ask-home-rotulo">
+        <p class="eyebrow ask__eyebrow" id="ask-home-rotulo">Your day</p>
+        <p class="ask__frase" id="ask-home-frase">
+          <!-- sentence with blanks rendered by JS -->
+        </p>
+        <div class="resposta" id="ask-home-resposta" aria-live="polite" hidden></div>
+        <div class="ask__footer">
+          <p class="ask__hint" id="ask-home-hint" aria-live="polite"></p>
+          <button type="submit" class="btn btn--primary btn--lg" id="btn-ver-looks">
+            See my looks
             <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
               <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -105,78 +99,55 @@
 
     <!-- ============ VIEW: RESULTS ============ -->
     <section class="view view--results" id="view-results" aria-labelledby="results-titulo" hidden>
-      <div class="results__head">
-        <div>
-          <p class="eyebrow">Suggestions</p>
-          <h1 class="results__title" id="results-titulo">Looks for you</h1>
+      <h1 class="sr-only" id="results-titulo">Your looks</h1>
+
+      <div class="recap">
+        <p class="eyebrow">Your day</p>
+        <p class="ask__frase ask__frase--recap" id="ask-res">
+          <!-- editable sentence rendered by JS -->
+        </p>
+      </div>
+      <div class="resposta resposta--res" id="res-resposta" aria-live="polite"></div>
+
+      <p class="sr-only" id="look-anuncio" aria-live="polite"></p>
+      <section class="look" id="look" aria-labelledby="look-nome">
+        <!-- featured look rendered by JS -->
+      </section>
+
+      <div class="strip-wrap" id="look-strip">
+        <h2 class="strip__titulo">All your looks</h2>
+        <div class="strip" id="strip" role="list">
+          <!-- thumbnails rendered by JS -->
         </div>
-        <p class="results__count" id="results-count" aria-live="polite"></p>
       </div>
 
-      <button type="button" class="chips" id="chips" aria-label="Active filters — click to edit">
-        <!-- chips rendered by JS -->
-      </button>
+      <section class="build" id="build" aria-labelledby="build-titulo">
+        <div class="build__head">
+          <div>
+            <p class="eyebrow">Pieces</p>
+            <h2 class="build__titulo" id="build-titulo">Build it yourself</h2>
+            <p class="build__sub" id="build-sub"></p>
+          </div>
+          <p class="results__count" id="results-count" aria-live="polite"></p>
+        </div>
 
-      <p class="results__styledesc" id="results-styledesc"></p>
+        <div class="cats" id="cats" role="tablist" aria-label="Piece categories">
+          <!-- tabs rendered by JS -->
+        </div>
 
-      <div class="cats" id="cats" role="tablist" aria-label="Suggestion categories">
-        <!-- tabs rendered by JS -->
-      </div>
-
-      <div class="results__grid" id="results-grid" role="tabpanel" tabindex="0">
-        <!-- cards rendered by JS -->
-      </div>
-
-      <div class="results__related" id="results-related" hidden>
-        <h2 class="results__related-title">You might also consider</h2>
-        <div class="results__grid results__grid--related" id="results-related-grid"></div>
-      </div>
+        <div class="results__grid" id="results-grid" role="tabpanel" tabindex="0">
+          <!-- cards rendered by JS -->
+        </div>
+      </section>
     </section>
   </main>
 
-  <!-- ============ MODAL: RULE NOTICE ============ -->
-  <div class="modal-overlay" id="jeans-overlay" hidden></div>
-  <div class="modal" id="jeans-modal" role="dialog" aria-modal="true" aria-labelledby="jeans-titulo" aria-describedby="jeans-texto" hidden>
-    <button type="button" class="btn-icon modal__fechar" id="jeans-fechar" aria-label="Close notice">
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-    </button>
-    <div class="modal__icone" id="jeans-icone" aria-hidden="true"></div>
-    <p class="eyebrow" id="jeans-eyebrow">Before you choose</p>
-    <h2 class="modal__title" id="jeans-titulo">The jeans rule</h2>
-    <p class="modal__text" id="jeans-texto">
-      In smart casual, jeans are welcome <b>only in straight and wide-leg cuts</b>,
-      in the washes shown in the examples. The leg should fall loose from hip to hem.
-    </p>
-    <button type="button" class="btn btn--primary btn--lg modal__btn" id="jeans-ok">Got it</button>
+  <!-- ============ PICKER: one blank of the sentence ============ -->
+  <div class="picker-scrim" id="picker-scrim" hidden></div>
+  <div class="picker" id="picker" role="dialog" aria-labelledby="picker-titulo" hidden>
+    <p class="eyebrow picker__titulo" id="picker-titulo"></p>
+    <div class="picker__opcoes" id="picker-opcoes" role="group" aria-labelledby="picker-titulo"></div>
   </div>
-
-  <!-- ============ DRAWER: EDIT FILTERS ============ -->
-  <div class="drawer-overlay" id="drawer-overlay" hidden></div>
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-titulo" hidden>
-    <header class="drawer__head">
-      <div>
-        <p class="eyebrow">Filters</p>
-        <h2 class="drawer__title" id="drawer-titulo">Edit filters</h2>
-      </div>
-      <button type="button" class="btn-icon" id="drawer-close" aria-label="Close filters panel">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </button>
-    </header>
-
-    <form class="drawer__body" id="form-drawer" novalidate>
-      <div class="drawer__fields" id="form-drawer-campos">
-        <!-- selects rendered by JS -->
-      </div>
-      <footer class="drawer__footer">
-        <button type="button" class="btn btn--ghost btn--lg" id="drawer-cancel">Cancel</button>
-        <button type="submit" class="btn btn--primary btn--lg" id="drawer-apply">Apply filters</button>
-      </footer>
-    </form>
-  </aside>
 
   <footer class="footer">
     <div class="footer__inner">
