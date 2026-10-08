@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-1 -73.00 74.00 74.00" role="img" aria-label="Context"><defs>
+    <linearGradient id="c3g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7C8DB4"/><stop offset=".45" stop-color="#AAB5CB"/>
+      <stop offset=".72" stop-color="#EE9A63"/><stop offset="1" stop-color="#C8452F"/>
+    </linearGradient>
+    <clipPath id="c3c"><circle cx="0" cy="0" r="36"/></clipPath>
+    <mask id="c3h" maskUnits="userSpaceOnUse" x="-36" y="-36" width="72" height="72"><rect x="-36" y="-36" width="72" height="72" fill="#fff"/><g fill="#000"><ellipse cx="4.32" cy="14.40" rx="22.32" ry="12.96" transform="rotate(-12 4.32 14.40)"/></g></mask>
+    <mask id="c3w" maskUnits="userSpaceOnUse" x="-10" y="-100" width="405.79999999999995" height="140"><rect x="-10" y="-100" width="405.79999999999995" height="140" fill="#fff"/><rect x="189.33" y="-34.29" width="26.64" height="4.50" transform="rotate(-32 202.65 -32.04)" fill="#000"/><rect x="345.23" y="-34.29" width="26.64" height="4.50" transform="rotate(-32 358.55 -32.04)" fill="#000"/></mask>
+  </defs><g transform="translate(36.00 -36.00)"><g clip-path="url(#c3c)" mask="url(#c3h)" fill="url(#c3g)" stroke="url(#c3g)"><circle cx="0" cy="0" r="36"/></g></g></svg>
