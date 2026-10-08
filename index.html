@@ -380,11 +380,12 @@ body {
 .proj-cta:hover { opacity: .75; }
 .try-box {
   display: flex; align-items: center; justify-content: space-between; gap: 20px;
-  background: #0E0D0C; color: #fff; border-radius: 12px;
+  background: linear-gradient(125deg, #0D3CFF 0%, #1F2FCF 28%, #241A8C 55%, #4B1FD8 80%, #6A2BFF 100%);
+  color: #fff; border-radius: 12px;
   padding: 24px 28px; margin-top: 10px;
 }
 .try-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-.try-desc { font-size: 12px; font-weight: 300; color: #aaa; }
+.try-desc { font-size: 12px; font-weight: 300; color: rgba(255,255,255,.75); }
 .try-box .proj-cta { margin-top: 0; flex-shrink: 0; background: #fff; color: #000; }
 
 /* ── PAGE SWITCHING ───────────────────────────── */
@@ -702,9 +703,10 @@ body.cursor-click #cursor-dot {
         <!-- row 4: Wish List (largura total) -->
         <a class="r-card wide" onclick="goProj('wishlist');return false;" href="#">
           <div class="r-card-thumb" style="position:relative;">
-            <div class="r-card-thumb-bg" style="background:#0E0D0C;"></div>
-            <img src="assets/images/wishlist_01.jpg" alt="Wish List" loading="lazy"
-              style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px;"/>
+            <div class="r-card-thumb-bg" style="background:#0A1A4F;"></div>
+            <video autoplay muted loop playsinline
+              style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:12px;"
+              src="assets/videos/wishlist_home.mp4"></video>
           </div>
           <span class="card-name-tag" data-pt="Wish List — Closet & Orçamento" data-en="Wish List — Closet & Budget">Wish List — Closet & Orçamento</span>
         </a>
@@ -867,16 +869,19 @@ body.cursor-click #cursor-dot {
           <a class="proj-cta" href="https://wish-list-kappa-five.vercel.app" target="_blank" rel="noopener"><span data-pt="Acessar a plataforma" data-en="Open the platform">Acessar a plataforma</span><span>↗</span></a>
         </div>
         <div class="proj-images">
-          <div class="case-img"><img src="assets/images/wishlist_01.jpg" loading="lazy" alt="Wish List — capa" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_02.jpg" loading="lazy" alt="Wish List — lista de desejos" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_03.jpg" loading="lazy" alt="Wish List — novo item a partir do link da loja" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_04.jpg" loading="lazy" alt="Wish List — prévia do orçamento ao selecionar peças" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_05.jpg" loading="lazy" alt="Wish List — carrinho e crédito comprometido" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_06.jpg" loading="lazy" alt="Wish List — closet" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_07.jpg" loading="lazy" alt="Wish List — looks" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_08.jpg" loading="lazy" alt="Wish List — montagem de look" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_09.jpg" loading="lazy" alt="Wish List — versão celular" style="width:100%;display:block;border-radius:12px;"/></div>
-          <div class="case-img"><img src="assets/images/wishlist_10.jpg" loading="lazy" alt="Wish List — temas claro e escuro" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img" style="position:relative;">
+            <video id="wlvid" autoplay muted loop playsinline poster="assets/images/wishlist_video_poster.jpg" style="width:100%;aspect-ratio:16/9;display:block;border-radius:12px;" data-src="assets/videos/wishlist_promo.mp4"></video>
+            <button onclick="(function(){var v=document.getElementById('wlvid');v.muted=!v.muted;this.textContent=v.muted?'🔇 Som':'🔊 Som';this.style.background=v.muted?'rgba(0,0,0,.55)':'rgba(0,0,0,.85)';}).call(this)" style="position:absolute;bottom:14px;right:14px;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 14px;font-family:aktiv-grotesk,sans-serif;font-size:11px;font-weight:500;letter-spacing:.08em;cursor:none;backdrop-filter:blur(4px);">🔇 Som</button>
+          </div>
+          <div class="case-img"><img src="assets/images/wishlist_01.jpg" loading="lazy" alt="Wish List — lista de desejos com orçamento" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_02.jpg" loading="lazy" alt="Wish List — novo item a partir do link da loja" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_03.jpg" loading="lazy" alt="Wish List — prévia do saldo antes de comprar" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_04.jpg" loading="lazy" alt="Wish List — carrinho do mês" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_05.jpg" loading="lazy" alt="Wish List — closet" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_06.jpg" loading="lazy" alt="Wish List — montagem de look" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_07.jpg" loading="lazy" alt="Wish List — looks por ocasião" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_08.jpg" loading="lazy" alt="Wish List — celular e computador" style="width:100%;display:block;border-radius:12px;"/></div>
+          <div class="case-img"><img src="assets/images/wishlist_09.jpg" loading="lazy" alt="Wish List — tema claro e escuro" style="width:100%;display:block;border-radius:12px;"/></div>
         </div>
         <div class="try-box">
           <div>
