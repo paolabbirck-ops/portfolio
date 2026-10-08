@@ -387,6 +387,16 @@ body {
 .try-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
 .try-desc { font-size: 12px; font-weight: 300; color: rgba(255,255,255,.75); }
 .try-box .proj-cta { margin-top: 0; flex-shrink: 0; background: #fff; color: #000; }
+/* Context: preto com a esfera da marca (azul-ardósia no alto, brasa embaixo) */
+.try-box--context {
+  background:
+    radial-gradient(26% 70% at 80% 128%, #06070a 0%, #06070a 55%, rgba(6,7,10,0) 100%),
+    radial-gradient(48% 150% at 80% 128%, rgba(200,69,47,.95) 0%, rgba(232,128,78,.7) 38%, rgba(238,154,99,0) 72%),
+    radial-gradient(70% 190% at 76% -70%, rgba(124,141,180,.85) 0%, rgba(147,160,185,.4) 42%, rgba(124,141,180,0) 70%),
+    #07080b;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.try-box--context .try-desc { color: rgba(236,238,243,.72); }
 
 /* ── PAGE SWITCHING ───────────────────────────── */
 .pg { display: none; }
@@ -932,10 +942,10 @@ body.cursor-click #cursor-dot {
           <div class="case-img"><img src="assets/images/context_09.jpg" loading="lazy" alt="Context — painel para editar os filtros" style="width:100%;display:block;border-radius:12px;"/></div>
           <div class="case-img"><img src="assets/images/context_10.jpg" loading="lazy" alt="Context — versão para celular" style="width:100%;display:block;border-radius:12px;"/></div>
         </div>
-        <div class="try-box">
+        <div class="try-box try-box--context">
           <div>
             <p class="try-title" data-pt="Experimente agora" data-en="Try it now">Experimente agora</p>
-            <p class="try-desc" data-pt="O Context está no ar, em inglês, com o catálogo completo: escolha os filtros e veja os looks." data-en="Context is live, in English, with the full catalog: pick the filters and see the looks.">O Context está no ar, em inglês, com o catálogo completo: escolha os filtros e veja os looks.</p>
+            <p class="try-desc" data-pt="O Context está no ar com o catálogo completo: escolha os filtros e veja os looks." data-en="Context is live with the full catalog: pick the filters and see the looks.">O Context está no ar com o catálogo completo: escolha os filtros e veja os looks.</p>
           </div>
           <a class="proj-cta" href="context/" target="_blank" rel="noopener"><span data-pt="Acessar a plataforma" data-en="Open the platform">Acessar a plataforma</span><span>↗</span></a>
         </div>
@@ -944,7 +954,6 @@ body.cursor-click #cursor-dot {
             <div class="credit-item"><div class="credit-label" data-pt="Cliente" data-en="Client">Cliente</div><div class="credit-val" data-pt="Proposta autoral" data-en="Personal proposal">Proposta autoral</div></div>
             <div class="credit-item"><div class="credit-label" data-pt="Design & Produto" data-en="Design & Product">Design & Produto</div><div class="credit-val">Paola Bertoni</div></div>
             <div class="credit-item"><div class="credit-label" data-pt="Desenvolvimento" data-en="Development">Desenvolvimento</div><div class="credit-val">Paola Bertoni</div></div>
-            <div class="credit-item"><div class="credit-label" data-pt="Idioma" data-en="Language">Idioma</div><div class="credit-val" data-pt="Inglês" data-en="English">Inglês</div></div>
             <div class="credit-item"><div class="credit-label" data-pt="Plataforma" data-en="Platform">Plataforma</div><div class="credit-val"><a href="context/" target="_blank" rel="noopener">paolabertoni.com.br/context ↗</a></div></div>
             <div class="credit-item"><div class="credit-label" data-pt="Ano" data-en="Year">Ano</div><div class="credit-val">2026</div></div>
           </div>
