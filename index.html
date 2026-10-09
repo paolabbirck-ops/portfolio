@@ -931,6 +931,10 @@ body.cursor-click #cursor-dot {
           <a class="proj-cta" href="context/" target="_blank" rel="noopener"><span data-pt="Acessar a plataforma" data-en="Open the platform">Acessar a plataforma</span><span>↗</span></a>
         </div>
         <div class="proj-images">
+          <div class="case-img" style="position:relative;">
+            <video id="ctxvid" autoplay muted loop playsinline poster="assets/images/context_video_poster.jpg" style="width:100%;aspect-ratio:16/9;display:block;border-radius:12px;" data-src="assets/videos/context_promo.mp4"></video>
+            <button onclick="(function(){var v=document.getElementById('ctxvid');v.muted=!v.muted;this.textContent=v.muted?'🔇 Som':'🔊 Som';this.style.background=v.muted?'rgba(0,0,0,.55)':'rgba(0,0,0,.85)';}).call(this)" style="position:absolute;bottom:14px;right:14px;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 14px;font-family:aktiv-grotesk,sans-serif;font-size:11px;font-weight:500;letter-spacing:.08em;cursor:none;backdrop-filter:blur(4px);">🔇 Som</button>
+          </div>
           <div class="case-img"><img src="assets/images/context_01.jpg" loading="lazy" alt="Context — logo sobre a esfera da marca" style="width:100%;display:block;border-radius:12px;"/></div>
           <div class="case-img"><img src="assets/images/context_02.jpg" loading="lazy" alt="Context — looks femininos e masculinos" style="width:100%;display:block;border-radius:12px;"/></div>
           <div class="case-img"><img src="assets/images/context_03.jpg" loading="lazy" alt="Context — o dia descrito numa frase com lacunas" style="width:100%;display:block;border-radius:12px;"/></div>
