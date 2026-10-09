@@ -249,6 +249,11 @@ body::before {
 /* ==========================================================================
    VIEWS
    ========================================================================== */
+/* A esfera da home passa da borda da tela de propósito; aqui ela é
+   cortada, sem abrir rolagem lateral. `clip` não cria contêiner de
+   rolagem, então o header fixo segue funcionando. */
+main { overflow-x: clip; }
+
 .view {
   max-width: var(--max-w);
   margin: 0 auto;
@@ -329,7 +334,7 @@ body::before {
   to { opacity: 1; transform: none; }
 }
 .view--home > .ask,
-.view--home > .guidelines { position: relative; z-index: 1; }
+.view--home > .escala { position: relative; z-index: 1; }
 .hero__title {
   font-size: clamp(44px, 7vw, 84px);
   font-weight: 200;
@@ -531,64 +536,208 @@ body::before {
 .nivel[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 
 /* ==========================================================================
-   DIRETRIZES
+   ESCALA DE FORMALIDADE — os quatro níveis, do formal ao casual
    ========================================================================== */
-.guidelines { margin-top: clamp(64px, 9vh, 110px); }
-.guidelines__title {
-  font-size: 13px;
+.escala {
+  margin-top: clamp(72px, 10vh, 120px);
+  scroll-margin-top: calc(var(--header-h) + 24px);
+}
+.escala__head { max-width: 640px; }
+.escala__titulo {
+  font-size: clamp(30px, 3.6vw, 44px);
+  font-weight: 250;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-top: 12px;
+}
+.escala__sub { font-size: 16px; color: var(--ink-3); margin-top: 12px; }
+
+.escala__eixo {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--ink-4);
-  margin-bottom: 28px;
 }
-.guidelines__grid {
+.escala__eixo span:first-child { color: var(--accent-2); }
+.escala__eixo span:last-child { color: var(--accent); }
+
+.escala__niveis {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1px;
-  background: var(--line);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+/* O trilho: o traço da esfera, da ardósia (formal) à brasa (casual). */
+.escala__niveis::before {
+  content: "";
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #7c8db4, #aab5cb 35%, #ee9a63 72%, #c8452f);
+  opacity: 0.8;
+}
+.degrau { position: relative; padding-top: 36px; }
+.degrau__ponto {
+  position: absolute;
+  top: 3px;
+  left: 22px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cor);
+  box-shadow: 0 0 0 4px var(--bg);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.degrau__card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
   overflow: hidden;
-}
-.guidelines__grid--levels {
-  grid-template-columns: repeat(auto-fit, minmax(196px, 1fr));
-  gap: 14px;
-  background: none;
-  border: none;
-  border-radius: 0;
-  overflow: visible;
-}
-.guidelines__grid--levels .guideline {
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
   box-shadow: var(--shadow-sm);
-  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+  transition:
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform var(--dur) var(--ease),
+    opacity var(--dur) var(--ease);
 }
-.guidelines__grid--levels .guideline:hover {
-  background: var(--surface);
-  border-color: var(--line-strong);
-  transform: translateY(-3px);
-}
-.guideline {
-  background: var(--surface);
-  padding: 28px 26px 30px;
-  transition: background var(--dur) var(--ease);
-}
-.guideline:hover { background: var(--bg); }
-.guideline__num {
+.degrau__media { flex: none; }
+.degrau__corpo { padding: 18px 22px 24px; }
+.degrau__num {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 22px;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--ink-4);
 }
-.guideline h3 {
-  font-size: 17px;
+.degrau__voce {
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bg);
+  background: var(--cor);
+  border-radius: var(--r-pill);
+  padding: 3px 9px;
+}
+.degrau__voce:empty { display: none; }
+.degrau.is-opcao .degrau__voce {
+  background: transparent;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line-control);
+}
+.degrau__nome {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.01em;
-  margin: 14px 0 8px;
+  margin: 10px 0 8px;
 }
-.guideline p { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+.degrau__nome .tag { font-size: 10px; padding: 3px 9px; }
+.degrau__desc { font-size: 14px; color: var(--ink-3); line-height: 1.6; }
+.degrau__quando {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  line-height: 1.55;
+}
+.degrau__quando ul { list-style: none; margin: 0; padding: 0; }
+.degrau__quando li + li { margin-top: 2px; }
+.degrau__rotulo {
+  margin-bottom: 6px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.degrau__extra { font-size: 12.5px; font-weight: 400; color: var(--ink-4); margin-top: 8px; line-height: 1.5; }
+
+/* O nível do dia, aceso na escala; os outros recuam. */
+.degrau.is-atual .degrau__card {
+  border-color: var(--cor);
+  box-shadow: 0 0 0 1px var(--cor), 0 18px 48px rgba(0, 0, 0, 0.45);
+  transform: translateY(-4px);
+}
+.degrau.is-atual .degrau__ponto {
+  transform: scale(1.45);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 22px var(--cor);
+}
+.degrau.is-opcao .degrau__card { border-color: var(--line-control); border-style: dashed; }
+.escala__niveis:has(.is-atual) .degrau:not(.is-atual):not(.is-opcao) .degrau__card { opacity: 0.5; }
+
+/* ---------- A escala em miniatura, dentro da resposta ---------- */
+.mini-escala {
+  flex: none;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  padding-left: 12px;
+}
+.mini-escala__fim {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+}
+.mini-escala__trilho {
+  position: relative;
+  width: 132px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mini-escala__trilho::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, #7c8db4, #aab5cb 35%, #ee9a63 72%, #c8452f);
+  opacity: 0.55;
+}
+.mini-escala i {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 2px solid var(--cor);
+}
+.mini-escala i.is-opcao { background: var(--cor); opacity: 0.55; }
+.mini-escala i.is-atual {
+  width: 14px;
+  height: 14px;
+  background: var(--cor);
+  border: none;
+  box-shadow: 0 0 14px var(--cor);
+}
 
 /* ==========================================================================
    RESULTADOS
@@ -1135,6 +1284,45 @@ h1[tabindex="-1"]:focus { outline: none; }
 
   .build__head { flex-direction: column; align-items: flex-start; gap: 8px; }
   .results__grid { grid-template-columns: 1fr; gap: 20px; }
+}
+
+/* Abaixo de 900px os quatro degraus não cabem lado a lado: a escala vira
+   vertical, com o trilho à esquerda e a foto ao lado do texto. */
+@media (max-width: 900px) {
+  .escala__eixo { display: none; }
+  .escala__niveis {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 28px;
+    padding-left: 30px;
+  }
+  .escala__niveis::before {
+    top: 0;
+    bottom: 0;
+    left: 6px;
+    right: auto;
+    width: 2px;
+    height: auto;
+    background: linear-gradient(180deg, #7c8db4, #aab5cb 35%, #ee9a63 72%, #c8452f);
+  }
+  .degrau { padding-top: 0; }
+  .degrau__ponto { top: 24px; left: -30px; }
+  .degrau__card { flex-direction: row; }
+  .degrau__media {
+    width: 112px;
+    aspect-ratio: auto;
+    border-bottom: none;
+    border-right: 1px solid var(--line);
+  }
+  /* Na faixa estreita a foto preenche a altura do card. */
+  .degrau__media img { object-fit: cover; object-position: center 20%; }
+  .degrau__corpo { padding: 14px 16px 16px; }
+  .degrau.is-atual .degrau__card { transform: none; }
+}
+
+@media (max-width: 768px) {
+  .resposta { flex-wrap: wrap; }
+  .mini-escala { flex-basis: 100%; margin-left: 0; padding-left: 0; }
 }
 
 /* No celular o seletor vira uma folha presa à base da tela. */

@@ -19,7 +19,24 @@
     "Smart casual": "A knit, polo or well-cut T-shirt with tailored trousers or straight-leg jeans — relaxed, for the occasional moment.",
   };
 
-  /* A ocasião dita o nível: somente estes estilos podem ser
+  /* ---------- Escala de formalidade (home) ----------
+     Um degrau por nível, com um look de exemplo e as ocasiões que pedem
+     aquele nível. A cor de cada degrau segue o traço da esfera: ardósia no
+     formal, brasa no casual. */
+  const NIVEL_CURTO = {
+    "Full formal": "Suit and tie, or a structured blazer with a skirt or tailored trousers. Sober tones, leather shoes.",
+    "Formal, no tie": "The same tailoring without the tie — an open collar, a fine knit or a sweater under the jacket.",
+    "Business casual": "Tailored trousers or a skirt with a shirt, blouse or knit. The jacket is optional.",
+    "Smart casual": "Knits, polos and straight-leg jeans. Relaxed, and still put together.",
+  };
+  const NIVEL_FOTO = {
+    "Full formal": "assets/looks/look-023.jpg",
+    "Formal, no tie": "assets/looks/look-145.jpg",
+    "Business casual": "assets/looks/look-029.jpg",
+    "Smart casual": "assets/looks/look-273.jpg",
+  };
+  const NIVEL_COR = ["#8ea0c8", "#c3c6d0", "#eba57f", "#e0703f"];
+
   /* A ocasião dita o nível: somente estes estilos podem ser
      selecionados para cada ocasião. O Smart casual só aparece no Happy
      hour — nenhuma área o usa em ocasião de expediente. */
@@ -470,6 +487,7 @@
     count: document.getElementById("results-count"),
     logoHome: document.getElementById("logo-home"),
     linkDiretrizes: document.getElementById("link-diretrizes"),
+    escala: document.getElementById("escala-niveis"),
   };
 
   /* ---------- A frase ----------
@@ -731,6 +749,7 @@
       el.askHomeHint.textContent = faltam === 0 ? "" :
         faltam === 4 ? "Tap a blank to start." :
         faltam + (faltam === 1 ? " blank" : " blanks") + " to go.";
+      marcarEscala(f);
     }
     if (!completa(f)) {
       alvo.hidden = true;
@@ -754,7 +773,8 @@
             : razaoNivel(f, permitidos)) +
         "</p>" +
         '<p class="resposta__desc">' + (NIVEL_DESC[nivel] || "") + "</p>" +
-      "</div>";
+      "</div>" +
+      miniEscala(nivel, permitidos);
 
     if (permitidos.length > 1) {
       const grupo = document.createElement("div");
@@ -774,6 +794,80 @@
       alvo.querySelector(".resposta__corpo").appendChild(grupo);
     }
     alvo.hidden = false;
+  }
+
+  /* A escala em miniatura dentro da resposta: onde o nível do dia cai
+     entre o formal e o casual. Só visual — o texto já diz o nível. */
+  function miniEscala(nivel, permitidos) {
+    return '<div class="mini-escala" aria-hidden="true">' +
+      '<span class="mini-escala__fim">Formal</span>' +
+      '<span class="mini-escala__trilho">' +
+        NIVEIS.map(function (n, i) {
+          const cls = n === nivel ? "is-atual" : permitidos.indexOf(n) !== -1 ? "is-opcao" : "";
+          return '<i class="' + cls + '" style="--cor:' + NIVEL_COR[i] + '"></i>';
+        }).join("") +
+      "</span>" +
+      '<span class="mini-escala__fim">Casual</span>' +
+    "</div>";
+  }
+
+  /* As exceções à regra da ocasião, em uma linha no degrau certo. */
+  function extraDoNivel(nivel) {
+    if (nivel === NIVEL_AREA_FORMAL) {
+      return "And every work occasion in " + AREAS_SEMPRE_FORMAL.join(" and ") + ".";
+    }
+    if (nivel === NIVEL_SO_MASCULINO) {
+      return "In womenswear, " + SUBSTITUTOS_FEMININOS.join(" or ") + " takes its place.";
+    }
+    return "";
+  }
+
+  function renderEscala() {
+    const ocasioes = opcoesDe("ocasiao");
+    el.escala.innerHTML = NIVEIS.map(function (nivel, i) {
+      const quando = ocasioes.filter(function (o) {
+        return (OCASIAO_NIVEIS[o] || []).indexOf(nivel) !== -1;
+      });
+      const foto = NIVEL_FOTO[nivel];
+      return '<li class="degrau" data-nivel="' + nivel + '" style="--cor:' + NIVEL_COR[i] + '">' +
+        '<span class="degrau__ponto" aria-hidden="true"></span>' +
+        '<div class="degrau__card">' +
+          '<div class="degrau__media look-card__media look-card__media--foto">' +
+            '<img src="' + encodeURI(VARIANTES_600[foto] || foto) + '" alt="" loading="lazy" decoding="async" />' +
+          "</div>" +
+          '<div class="degrau__corpo">' +
+            '<p class="degrau__num">' + (i < 9 ? "0" : "") + (i + 1) +
+              '<span class="degrau__voce"></span></p>' +
+            '<h3 class="degrau__nome">' + nivel +
+              (nivel === NIVEL_SO_MASCULINO ? ' <span class="tag">Menswear</span>' : "") + "</h3>" +
+            '<p class="degrau__desc">' + NIVEL_CURTO[nivel] + "</p>" +
+            '<div class="degrau__quando"><p class="degrau__rotulo">Made for</p>' +
+              "<ul>" + quando.map(function (o) { return "<li>" + o + "</li>"; }).join("") + "</ul>" +
+              (extraDoNivel(nivel) ? '<p class="degrau__extra">' + extraDoNivel(nivel) + "</p>" : "") +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+      "</li>";
+    }).join("");
+    el.escala.querySelectorAll("img").forEach(function (img) {
+      if (img.complete) pintarSobra(img);
+      else img.addEventListener("load", function () { pintarSobra(img); }, { once: true });
+    });
+  }
+
+  /* Com a frase completa, o nível do dia acende na escala ("Your level");
+     quando a ocasião aceita dois, o outro fica marcado como opção. */
+  function marcarEscala(f) {
+    const ok = completa(f);
+    const permitidos = ok ? niveisPermitidos(f.ocasiao, f.area, f.genero) : [];
+    el.escala.querySelectorAll(".degrau").forEach(function (d) {
+      const n = d.dataset.nivel;
+      const atual = ok && n === f.estilo;
+      const opcao = ok && !atual && permitidos.indexOf(n) !== -1;
+      d.classList.toggle("is-atual", atual);
+      d.classList.toggle("is-opcao", opcao);
+      d.querySelector(".degrau__voce").textContent = atual ? "Your level" : opcao ? "Also an option" : "";
+    });
   }
 
   function escolherNivel(ctx, nivel) {
@@ -1542,6 +1636,7 @@
   });
 
   /* ---------- Inicialização ---------- */
+  renderEscala();
   state.rascunho = Object.assign({}, state.filtros);
   ajustarEstilo(state.rascunho);
 
