@@ -19,7 +19,24 @@
     "Smart casual": "A knit, polo or well-cut T-shirt with tailored trousers or straight-leg jeans — relaxed, for the occasional moment.",
   };
 
-  /* A ocasião dita o nível: somente estes estilos podem ser
+  /* ---------- Escala de formalidade (home) ----------
+     Um degrau por nível, com um look de exemplo e as ocasiões que pedem
+     aquele nível. A cor de cada degrau segue o traço da esfera: ardósia no
+     formal, brasa no casual. */
+  const NIVEL_CURTO = {
+    "Full formal": "Suit and tie, or a structured blazer with a skirt or tailored trousers. Sober tones, leather shoes.",
+    "Formal, no tie": "The same tailoring without the tie — an open collar, a fine knit or a sweater under the jacket.",
+    "Business casual": "Tailored trousers or a skirt with a shirt, blouse or knit. The jacket is optional.",
+    "Smart casual": "Knits, polos and straight-leg jeans. Relaxed, and still put together.",
+  };
+  const NIVEL_FOTO = {
+    "Full formal": "assets/looks/look-023.jpg",
+    "Formal, no tie": "assets/looks/look-145.jpg",
+    "Business casual": "assets/looks/look-029.jpg",
+    "Smart casual": "assets/looks/look-273.jpg",
+  };
+  const NIVEL_COR = ["#8ea0c8", "#c3c6d0", "#eba57f", "#e0703f"];
+
   /* A ocasião dita o nível: somente estes estilos podem ser
      selecionados para cada ocasião. O Smart casual só aparece no Happy
      hour — nenhuma área o usa em ocasião de expediente. */
@@ -290,9 +307,9 @@
      Unhas só aparecem no feminino. */
   const CATEGORIAS = [
     { key: "looks", label: "Complete looks" },
-    { key: "vestidos", label: "Dresses", genero: "Womenswear", desc: "One piece that settles the whole look." },
     { key: "tops", label: "Tops", desc: "The top layer of the look at this level." },
     { key: "bottoms", label: "Bottoms", desc: "The base of the outfit." },
+    { key: "vestidos", label: "Dresses", genero: "Womenswear", desc: "One piece that settles the whole look." },
     { key: "sapatos", label: "Shoes", desc: "Footwear matched to the level of formality." },
     { key: "acessorios", label: "Accessories", desc: "The detail that finishes the look." },
     { key: "unhas", label: "Nails", genero: "Womenswear", desc: "A polish shade suited to the level." },
@@ -325,89 +342,73 @@
     return ((a.destaque || 999) - (b.destaque || 999)) || (a.cli.length - b.cli.length);
   }
 
-  /* ---------- Regras com aviso na tela ----------
-     Cada regra tem um aviso fixo na grade e um modal. `vale()` decide quando
-     ela se aplica; `abreEm` define quando o modal dispara — null é a entrada
-     nos resultados, uma chave de categoria é a abertura daquela aba, e uma
-     lista aceita mais de um gatilho (vale o primeiro que acontecer). */
+  /* ---------- Regras de estilo ----------
+     Cada regra aparece onde a peça está, sem modal: como aviso fixo na
+     grade de "Build it yourself" (`vale()` decide em qual aba) e como nota
+     de estilista no look principal, quando o look tem a peça
+     (`noLook()`). */
   /* Níveis em que a regra da calça jeans vale, para ambos os gêneros. */
   const NIVEIS_COM_REGRA_JEANS = ["Business casual", "Smart casual"];
+
+  function textoDoLook(look) {
+    return look.nome + " " + look.desc;
+  }
 
   const REGRAS = [
     {
       id: "jeans",
-      /* Abre nos Looks completos (na entrada dos resultados, que já cai
-         nessa aba, e ao voltar para ela) e em "Partes de baixo" — as duas
-         abas onde a calça jeans aparece. */
-      abreEm: [null, "looks", "bottoms"],
-      /* As abas reabrem o modal toda vez que são abertas; a entrada dispara
-         uma vez por busca. */
-      sempre: ["looks", "bottoms"],
       vale: function (res, f, cat) {
-        return NIVEIS_COM_REGRA_JEANS.indexOf(res.nivel) !== -1 &&
-          (cat === "looks" || cat === "bottoms");
+        return NIVEIS_COM_REGRA_JEANS.indexOf(res.nivel) !== -1 && cat === "bottoms";
+      },
+      noLook: function (look, res) {
+        return NIVEIS_COM_REGRA_JEANS.indexOf(res.nivel) !== -1 && /\bjeans\b/i.test(textoDoLook(look));
       },
       aviso:
         "<b>About jeans:</b> only <b>straight</b> and <b>wide-leg</b> cuts, " +
         "in the washes shown in the examples. The leg should fall loose from hip to hem.",
-      modal: {
-        titulo: "The jeans rule",
-        eyebrow: "Before you choose",
-        /* O texto nomeia o nível da busca: a regra é a mesma nos dois. */
-        texto: function (res) {
-          return "In " + res.nivel + ", jeans are welcome <b>only in straight and wide-leg cuts</b>, " +
-            "in the washes shown in the examples. The leg should fall loose from hip to hem.";
-        },
-        icone: "bottoms",
+      nota: {
+        titulo: "On jeans",
+        texto: "Only straight and wide-leg cuts, in washes like these. The leg should fall loose from hip to hem.",
       },
     },
     {
       id: "sapatoAberto",
-      abreEm: "sapatos",
       vale: function (res, f, cat) { return f.genero === "Womenswear" && cat === "sapatos"; },
+      noLook: function (look, res, f) {
+        return f.genero === "Womenswear" && /sandal|mule|peep/i.test(textoDoLook(look));
+      },
       aviso:
         "<b>About open shoes:</b> sandals, mules and peep toes leave your feet on show. " +
         "Choose them when your toenails are done and the polish is in good shape — " +
         "no chips. When in doubt, a closed shoe does the job.",
-      modal: {
-        titulo: "Open shoes call for polished feet",
-        eyebrow: "Before you choose",
-        texto:
-          "Sandals, mules and peep toes put your feet on display. Save them for " +
-          "days when your <b>toenails are done</b> and the polish is intact, " +
-          "with no chips. When in doubt, a closed shoe always works.",
-        icone: "sapatos",
+      nota: {
+        titulo: "Open shoes",
+        texto: "They leave your feet on show — wear them when your toenails are done and the polish is intact.",
       },
     },
     {
       id: "unhas",
-      abreEm: "unhas",
       vale: function (res, f, cat) { return cat === "unhas"; },
+      noLook: function () { return false; },
       aviso:
         "<b>About nails:</b> keep them neat and well groomed, with intact polish. " +
         "At the formal levels, stick to the <b>neutral shades</b> in this palette.",
-      modal: {
-        titulo: "Nails, always well kept",
-        eyebrow: "Polish tip",
-        texto:
-          "Nails are part of the outfit: keep them <b>neat and well groomed</b>, " +
-          "with intact, chip-free polish. At the formal levels, go for " +
-          "<b>neutral shades</b> — nude, rosé, taupe and milky white.",
-        icone: "unhas",
-      },
     },
   ];
 
   /* Marca quais avisos ainda não chamaram atenção nesta busca. Consumido no
      primeiro render que exibe cada um. */
   let regrasPendentes = {};
-  let modaisPendentes = {};
 
   /* ---------- Estado ---------- */
   const state = {
     filtros: { area: "", ocasiao: "", clima: "", estilo: "", genero: "" },
-    categoria: "looks",
+    /* A frase da home enquanto está sendo preenchida, antes de virar busca. */
+    rascunho: null,
+    categoria: "tops",
     busca: null,
+    /* Posição do look principal na lista de looks da busca. */
+    destaque: 0,
   };
 
   /* Opções que mudarem de nome entram aqui (nome antigo → nome atual), para
@@ -465,188 +466,421 @@
   const el = {
     viewHome: document.getElementById("view-home"),
     viewResults: document.getElementById("view-results"),
-    formHome: document.getElementById("form-filtros"),
-    formHomeCampos: document.getElementById("form-filtros-campos"),
-    formHint: document.getElementById("form-hint"),
-    formProgress: document.getElementById("form-progress"),
-    formDrawer: document.getElementById("form-drawer"),
-    formDrawerCampos: document.getElementById("form-drawer-campos"),
-    btnEditar: document.getElementById("btn-editar-filtros"),
-    drawer: document.getElementById("drawer"),
-    overlay: document.getElementById("drawer-overlay"),
-    jeansOverlay: document.getElementById("jeans-overlay"),
-    jeansModal: document.getElementById("jeans-modal"),
-    jeansOk: document.getElementById("jeans-ok"),
-    jeansFechar: document.getElementById("jeans-fechar"),
-    jeansIcone: document.getElementById("jeans-icone"),
-    jeansEyebrow: document.getElementById("jeans-eyebrow"),
-    jeansTitulo: document.getElementById("jeans-titulo"),
-    jeansTexto: document.getElementById("jeans-texto"),
-    drawerClose: document.getElementById("drawer-close"),
-    drawerCancel: document.getElementById("drawer-cancel"),
-    chips: document.getElementById("chips"),
-    styledesc: document.getElementById("results-styledesc"),
+    askHome: document.getElementById("ask-home"),
+    askHomeFrase: document.getElementById("ask-home-frase"),
+    askHomeResposta: document.getElementById("ask-home-resposta"),
+    askHomeHint: document.getElementById("ask-home-hint"),
+    btnVer: document.getElementById("btn-ver-looks"),
+    askRes: document.getElementById("ask-res"),
+    resResposta: document.getElementById("res-resposta"),
+    picker: document.getElementById("picker"),
+    pickerTitulo: document.getElementById("picker-titulo"),
+    pickerOpcoes: document.getElementById("picker-opcoes"),
+    pickerScrim: document.getElementById("picker-scrim"),
+    look: document.getElementById("look"),
+    lookAnuncio: document.getElementById("look-anuncio"),
+    stripWrap: document.getElementById("look-strip"),
+    strip: document.getElementById("strip"),
+    buildSub: document.getElementById("build-sub"),
     cats: document.getElementById("cats"),
     grid: document.getElementById("results-grid"),
     count: document.getElementById("results-count"),
-    related: document.getElementById("results-related"),
-    relatedGrid: document.getElementById("results-related-grid"),
     logoHome: document.getElementById("logo-home"),
     linkDiretrizes: document.getElementById("link-diretrizes"),
-    header: document.getElementById("header"),
-    conteudo: document.getElementById("conteudo"),
-    footer: document.querySelector(".footer"),
+    escala: document.getElementById("escala-niveis"),
   };
 
-  /* ---------- Construção dos selects ---------- */
-  function buildFields(container, prefix) {
-    FILTERS.forEach(function (f) {
-      const field = document.createElement("div");
-      field.className = "field";
-      field.dataset.key = f.key;
+  /* ---------- A frase ----------
+     A home pergunta em forma de frase, com uma lacuna por filtro. O estilo
+     não é perguntado: ele é a resposta — sai da ocasião, da área e do
+     guarda-roupa (niveisPermitidos) e só vira escolha quando a ocasião
+     aceita mais de um nível. A mesma frase reaparece no topo dos
+     resultados, onde cada lacuna troca a busca na hora. */
+  const FRASE = [
+    "I work in ", "area",
+    ", and today it’s ", "ocasiao",
+    ". The weather is ", "clima",
+    ", and I wear ", "genero",
+    ".",
+  ];
+  const CHAVES_FRASE = ["area", "ocasiao", "clima", "genero"];
 
-      const label = document.createElement("label");
-      label.className = "field__label";
-      label.setAttribute("for", prefix + "-" + f.key);
-      label.innerHTML = f.label + '<span class="field__check" aria-hidden="true"></span>';
+  const LACUNAS = {
+    area: { titulo: "Department", vazio: "your department" },
+    ocasiao: { titulo: "Occasion", vazio: "an occasion" },
+    clima: { titulo: "Weather", vazio: "warm, mild or cold" },
+    genero: { titulo: "Wardrobe", vazio: "womenswear or menswear" },
+  };
 
-      const wrap = document.createElement("div");
-      wrap.className = "select-wrap";
+  /* Como cada ocasião se encaixa no meio da frase. */
+  const OCASIAO_FRASE = {
+    "Office day": "an office day",
+    "Remote work": "a remote work day",
+    "Internal meeting": "an internal meeting",
+    "Client meeting": "a client meeting",
+    "Corporate event": "a corporate event",
+    "Happy hour": "happy hour",
+    "Conference": "a conference",
+    "Key presentation": "a key presentation",
+  };
 
-      const select = document.createElement("select");
-      select.className = "select";
-      select.id = prefix + "-" + f.key;
-      select.name = f.key;
-      select.required = true;
+  function naFrase(key, valor) {
+    if (key === "ocasiao") return OCASIAO_FRASE[valor] || valor;
+    if (key === "clima" || key === "genero") return valor.toLowerCase();
+    return valor;
+  }
 
-      const ph = document.createElement("option");
-      ph.value = "";
-      ph.textContent = f.placeholder;
-      ph.disabled = true;
-      ph.selected = true;
-      select.appendChild(ph);
+  function maiuscula(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
 
-      f.options.forEach(function (opt) {
-        const o = document.createElement("option");
-        o.value = opt;
-        o.textContent = opt;
-        select.appendChild(o);
+  function opcoesDe(key) {
+    return FILTERS.filter(function (f) { return f.key === key; })[0].options;
+  }
+
+  function valoresDe(ctx) {
+    return ctx === "home" ? state.rascunho : state.filtros;
+  }
+
+  function completa(f) {
+    return CHAVES_FRASE.every(function (k) { return f[k]; });
+  }
+
+  /* O estilo acompanha o resto da frase: se o nível escolhido deixou de
+     valer para a nova combinação, volta para o primeiro permitido. */
+  function ajustarEstilo(f) {
+    if (!f.ocasiao) { f.estilo = ""; return; }
+    const permitidos = niveisPermitidos(f.ocasiao, f.area, f.genero);
+    if (permitidos.indexOf(f.estilo) === -1) f.estilo = permitidos[0];
+  }
+
+  const SETA_LACUNA =
+    '<svg class="slot__seta" width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
+    '<path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  function slotDe(ctx, key) {
+    const alvo = ctx === "home" ? el.askHomeFrase : el.askRes;
+    return alvo.querySelector('.slot[data-key="' + key + '"]');
+  }
+
+  function renderFrase(ctx) {
+    const alvo = ctx === "home" ? el.askHomeFrase : el.askRes;
+    const valores = valoresDe(ctx);
+    alvo.innerHTML = "";
+    FRASE.forEach(function (parte) {
+      const cfg = LACUNAS[parte];
+      if (!cfg) {
+        alvo.appendChild(document.createTextNode(parte));
+        return;
+      }
+      const v = valores[parte];
+      const slot = document.createElement("button");
+      slot.type = "button";
+      slot.className = "slot" + (v ? " is-filled" : "");
+      slot.dataset.key = parte;
+      slot.dataset.ctx = ctx;
+      slot.setAttribute("aria-haspopup", "dialog");
+      slot.setAttribute("aria-expanded", "false");
+      slot.setAttribute("aria-label", cfg.titulo + ": " + (v || "not chosen yet"));
+      slot.innerHTML = '<span class="slot__txt">' + (v ? naFrase(parte, v) : cfg.vazio) + "</span>" + SETA_LACUNA;
+      slot.addEventListener("click", function () { abrirPicker(slot); });
+      alvo.appendChild(slot);
+    });
+  }
+
+  /* ---------- Escolha de uma lacuna ----------
+     Um seletor só, compartilhado pelas oito lacunas: abre colado à lacuna
+     no desktop e como folha na base da tela no celular. */
+  const FOLHA = window.matchMedia("(max-width: 600px)");
+  let pickerSlot = null;
+
+  function abrirPicker(slot) {
+    if (pickerSlot === slot) { fecharPicker(true); return; }
+    fecharPicker(false);
+    pickerSlot = slot;
+    const key = slot.dataset.key;
+    const atual = valoresDe(slot.dataset.ctx)[key];
+
+    el.pickerTitulo.textContent = LACUNAS[key].titulo;
+    el.pickerOpcoes.innerHTML = "";
+    opcoesDe(key).forEach(function (op) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "opcao";
+      b.textContent = op;
+      b.setAttribute("aria-pressed", String(op === atual));
+      b.addEventListener("click", function () { escolher(slot, key, op); });
+      el.pickerOpcoes.appendChild(b);
+    });
+
+    slot.setAttribute("aria-expanded", "true");
+    slot.classList.add("is-open");
+    el.picker.hidden = false;
+    posicionarPicker();
+    if (FOLHA.matches) el.pickerScrim.hidden = false;
+    void el.picker.offsetWidth;
+    el.picker.classList.add("is-open");
+    el.pickerScrim.classList.add("is-open");
+
+    const foco = el.pickerOpcoes.querySelector('[aria-pressed="true"]') || el.pickerOpcoes.firstChild;
+    foco.focus({ preventScroll: true });
+    document.addEventListener("keydown", onPickerKeydown);
+    document.addEventListener("pointerdown", onForaDoPicker, true);
+  }
+
+  function posicionarPicker() {
+    const p = el.picker;
+    if (FOLHA.matches) {
+      p.style.left = "";
+      p.style.top = "";
+      return;
+    }
+    const r = pickerSlot.getBoundingClientRect();
+    const margem = 16;
+    const maxLeft = window.scrollX + document.documentElement.clientWidth - p.offsetWidth - margem;
+    const left = Math.max(window.scrollX + margem, Math.min(r.left + window.scrollX - 8, maxLeft));
+    p.style.left = left + "px";
+    p.style.top = (r.bottom + window.scrollY + 10) + "px";
+    /* Lacuna perto do pé da tela: rola o bastante para o seletor caber. */
+    const sobra = p.getBoundingClientRect().bottom - (window.innerHeight - 16);
+    if (sobra > 0) window.scrollBy({ top: sobra, behavior: "smooth" });
+  }
+
+  function fecharPicker(devolverFoco) {
+    if (!pickerSlot) return;
+    const slot = pickerSlot;
+    pickerSlot = null;
+    slot.setAttribute("aria-expanded", "false");
+    slot.classList.remove("is-open");
+    el.picker.classList.remove("is-open");
+    el.pickerScrim.classList.remove("is-open");
+    el.picker.hidden = true;
+    el.pickerScrim.hidden = true;
+    document.removeEventListener("keydown", onPickerKeydown);
+    document.removeEventListener("pointerdown", onForaDoPicker, true);
+    if (devolverFoco && slot.isConnected) slot.focus();
+  }
+
+  function onPickerKeydown(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      fecharPicker(true);
+      return;
+    }
+    /* O seletor fica no fim do documento, longe da lacuna. Tab devolve o
+       foco à lacuna sem cancelar o evento, e o navegador segue a ordem
+       normal a partir dela: Tab vai para a lacuna seguinte, Shift+Tab para
+       a anterior. */
+    if (e.key === "Tab") {
+      fecharPicker(true);
+      return;
+    }
+    const passo = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!passo) return;
+    const ops = Array.prototype.slice.call(el.pickerOpcoes.children);
+    const i = ops.indexOf(document.activeElement);
+    if (i === -1) return;
+    e.preventDefault();
+    ops[(i + passo + ops.length) % ops.length].focus();
+  }
+
+  /* A própria lacuna fica de fora: o clique nela já fecha (abrirPicker). */
+  function onForaDoPicker(e) {
+    if (el.picker.contains(e.target) || (pickerSlot && pickerSlot.contains(e.target))) return;
+    fecharPicker(false);
+  }
+
+  function escolher(slot, key, valor) {
+    const ctx = slot.dataset.ctx;
+    fecharPicker(false);
+
+    if (ctx === "res") {
+      const f = Object.assign({}, state.filtros);
+      f[key] = valor;
+      ajustarEstilo(f);
+      aplicarFiltros(f, true, true);
+      slotDe("res", key).focus();
+      return;
+    }
+
+    const estavaVazia = !state.rascunho[key];
+    state.rascunho[key] = valor;
+    ajustarEstilo(state.rascunho);
+    renderFrase("home");
+    renderResposta("home");
+
+    /* Preenchendo pela primeira vez, a conversa segue para a próxima lacuna
+       vazia; com tudo preenchido, o foco vai para o botão. Corrigir uma
+       lacuna já preenchida não arrasta a pessoa para lugar nenhum. */
+    const ordem = CHAVES_FRASE.slice(CHAVES_FRASE.indexOf(key) + 1).concat(CHAVES_FRASE);
+    const proxima = ordem.filter(function (k) { return !state.rascunho[k]; })[0];
+    if (!proxima) el.btnVer.focus({ preventScroll: true });
+    else if (estavaVazia) abrirPicker(slotDe("home", proxima));
+    else slotDe("home", key).focus();
+  }
+
+  /* ---------- A resposta: o nível de dress code ---------- */
+  function razaoNivel(f, permitidos) {
+    const oc = OCASIAO_FRASE[f.ocasiao] || f.ocasiao;
+    const Oc = maiuscula(oc);
+    if (OCASIOES_SEM_REGRA_DE_AREA.indexOf(f.ocasiao) === -1 &&
+        AREAS_SEMPRE_FORMAL.indexOf(f.area) !== -1) {
+      return "In " + f.area + ", every work occasion calls for <b>" + NIVEL_AREA_FORMAL + "</b>.";
+    }
+    const base = OCASIAO_NIVEIS[f.ocasiao] || [];
+    if (f.genero === "Womenswear" && base.length === 1 && base[0] === NIVEL_SO_MASCULINO) {
+      return "<b>" + NIVEL_SO_MASCULINO + "</b> is a menswear level — for " + oc +
+        ", womenswear goes <b>" + permitidos.join("</b> or <b>") + "</b>. Pick the one that fits your day.";
+    }
+    if (permitidos.length > 1) {
+      return Oc + " works at two levels — pick the one that fits your day.";
+    }
+    return Oc + " calls for <b>" + permitidos[0] + "</b>.";
+  }
+
+  function renderResposta(ctx) {
+    const alvo = ctx === "home" ? el.askHomeResposta : el.resResposta;
+    const f = valoresDe(ctx);
+
+    if (ctx === "home") {
+      const faltam = CHAVES_FRASE.filter(function (k) { return !f[k]; }).length;
+      el.askHome.classList.toggle("is-complete", faltam === 0);
+      el.askHomeHint.classList.remove("is-error");
+      el.askHomeHint.textContent = faltam === 0 ? "" :
+        faltam === 4 ? "Tap a blank to start." :
+        faltam + (faltam === 1 ? " blank" : " blanks") + " to go.";
+      marcarEscala(f);
+    }
+    if (!completa(f)) {
+      alvo.hidden = true;
+      alvo.innerHTML = "";
+      return;
+    }
+
+    const permitidos = niveisPermitidos(f.ocasiao, f.area, f.genero);
+    const nivel = ctx === "res" && state.busca ? state.busca.nivel : f.estilo;
+    const fora = ctx === "res" && state.busca && !state.busca.adequado;
+
+    alvo.innerHTML =
+      '<span class="resposta__orb" aria-hidden="true"></span>' +
+      '<div class="resposta__corpo">' +
+        '<p class="eyebrow">Your dress code</p>' +
+        '<p class="resposta__nivel">' + nivel + "</p>" +
+        '<p class="resposta__porque">' +
+          (fora
+            ? "<b>" + f.estilo + "</b> isn’t the recommended level for " + (OCASIAO_FRASE[f.ocasiao] || f.ocasiao) +
+              " — here’s <b>" + nivel + "</b>, the closest suitable level."
+            : razaoNivel(f, permitidos)) +
+        "</p>" +
+        '<p class="resposta__desc">' + (NIVEL_DESC[nivel] || "") + "</p>" +
+      "</div>" +
+      miniEscala(nivel, permitidos);
+
+    if (permitidos.length > 1) {
+      const grupo = document.createElement("div");
+      grupo.className = "niveis";
+      grupo.setAttribute("role", "group");
+      grupo.setAttribute("aria-label", "Choose your level");
+      permitidos.forEach(function (n) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "nivel";
+        b.dataset.nivel = n;
+        b.textContent = n;
+        b.setAttribute("aria-pressed", String(n === nivel));
+        b.addEventListener("click", function () { escolherNivel(ctx, n); });
+        grupo.appendChild(b);
       });
+      alvo.querySelector(".resposta__corpo").appendChild(grupo);
+    }
+    alvo.hidden = false;
+  }
 
-      select.addEventListener("change", function () {
-        field.classList.toggle("is-filled", !!select.value);
-        field.classList.remove("is-error");
-        select.removeAttribute("aria-invalid");
-        if (f.key === "ocasiao" || f.key === "area" || f.key === "genero") atualizarEstilos(prefix);
-        if (prefix === "home") updateProgress();
+  /* A escala em miniatura dentro da resposta: onde o nível do dia cai
+     entre o formal e o casual. Só visual — o texto já diz o nível. */
+  function miniEscala(nivel, permitidos) {
+    return '<div class="mini-escala" aria-hidden="true">' +
+      '<span class="mini-escala__fim">Formal</span>' +
+      '<span class="mini-escala__trilho">' +
+        NIVEIS.map(function (n, i) {
+          const cls = n === nivel ? "is-atual" : permitidos.indexOf(n) !== -1 ? "is-opcao" : "";
+          return '<i class="' + cls + '" style="--cor:' + NIVEL_COR[i] + '"></i>';
+        }).join("") +
+      "</span>" +
+      '<span class="mini-escala__fim">Casual</span>' +
+    "</div>";
+  }
+
+  /* As exceções à regra da ocasião, em uma linha no degrau certo. */
+  function extraDoNivel(nivel) {
+    if (nivel === NIVEL_AREA_FORMAL) {
+      return "And every work occasion in " + AREAS_SEMPRE_FORMAL.join(" and ") + ".";
+    }
+    if (nivel === NIVEL_SO_MASCULINO) {
+      return "In womenswear, " + SUBSTITUTOS_FEMININOS.join(" or ") + " takes its place.";
+    }
+    return "";
+  }
+
+  function renderEscala() {
+    const ocasioes = opcoesDe("ocasiao");
+    el.escala.innerHTML = NIVEIS.map(function (nivel, i) {
+      const quando = ocasioes.filter(function (o) {
+        return (OCASIAO_NIVEIS[o] || []).indexOf(nivel) !== -1;
       });
-
-      wrap.appendChild(select);
-      field.appendChild(label);
-      field.appendChild(wrap);
-
-      if (f.key === "estilo") {
-        const note = document.createElement("p");
-        note.className = "field__note";
-        note.id = prefix + "-estilo-note";
-        note.hidden = true;
-        /* A nota explica por que as opções mudaram e quando o nível foi
-           escolhido sozinho — precisa ser lida e anunciada. */
-        note.setAttribute("aria-live", "polite");
-        select.setAttribute("aria-describedby", note.id);
-        field.appendChild(note);
-      }
-
-      container.appendChild(field);
+      const foto = NIVEL_FOTO[nivel];
+      return '<li class="degrau" data-nivel="' + nivel + '" style="--cor:' + NIVEL_COR[i] + '">' +
+        '<span class="degrau__ponto" aria-hidden="true"></span>' +
+        '<div class="degrau__card">' +
+          '<div class="degrau__media look-card__media look-card__media--foto">' +
+            '<img src="' + encodeURI(VARIANTES_600[foto] || foto) + '" alt="" loading="lazy" decoding="async" />' +
+          "</div>" +
+          '<div class="degrau__corpo">' +
+            '<p class="degrau__num">' + (i < 9 ? "0" : "") + (i + 1) +
+              '<span class="degrau__voce"></span></p>' +
+            '<h3 class="degrau__nome">' + nivel +
+              (nivel === NIVEL_SO_MASCULINO ? ' <span class="tag">Menswear</span>' : "") + "</h3>" +
+            '<p class="degrau__desc">' + NIVEL_CURTO[nivel] + "</p>" +
+            '<div class="degrau__quando"><p class="degrau__rotulo">Made for</p>' +
+              "<ul>" + quando.map(function (o) { return "<li>" + o + "</li>"; }).join("") + "</ul>" +
+              (extraDoNivel(nivel) ? '<p class="degrau__extra">' + extraDoNivel(nivel) + "</p>" : "") +
+            "</div>" +
+          "</div>" +
+        "</div>" +
+      "</li>";
+    }).join("");
+    el.escala.querySelectorAll("img").forEach(function (img) {
+      if (img.complete) pintarSobra(img);
+      else img.addEventListener("load", function () { pintarSobra(img); }, { once: true });
     });
   }
 
-  /* Restringe o select de estilo aos níveis permitidos pela ocasião:
-     opções fora da regra ficam desabilitadas; ocasião com nível único
-     seleciona automaticamente; seleção inválida é limpa. */
-  function atualizarEstilos(prefix) {
-    const ocasiao = document.getElementById(prefix + "-ocasiao").value;
-    const area = document.getElementById(prefix + "-area").value;
-    const genero = document.getElementById(prefix + "-genero").value;
-    const select = document.getElementById(prefix + "-estilo");
-    const field = select.closest(".field");
-    const note = document.getElementById(prefix + "-estilo-note");
-    const permitidos = niveisPermitidos(ocasiao, area, genero);
-
-    /* Níveis fora da regra saem da lista: o Smart casual não deve nem
-       aparecer para áreas sem liberação no dia a dia. */
-    Array.prototype.forEach.call(select.options, function (opt) {
-      if (!opt.value) return;
-      const fora = permitidos.indexOf(opt.value) === -1;
-      opt.disabled = fora;
-      opt.hidden = fora;
+  /* Com a frase completa, o nível do dia acende na escala ("Your level");
+     quando a ocasião aceita dois, o outro fica marcado como opção. */
+  function marcarEscala(f) {
+    const ok = completa(f);
+    const permitidos = ok ? niveisPermitidos(f.ocasiao, f.area, f.genero) : [];
+    el.escala.querySelectorAll(".degrau").forEach(function (d) {
+      const n = d.dataset.nivel;
+      const atual = ok && n === f.estilo;
+      const opcao = ok && !atual && permitidos.indexOf(n) !== -1;
+      d.classList.toggle("is-atual", atual);
+      d.classList.toggle("is-opcao", opcao);
+      d.querySelector(".degrau__voce").textContent = atual ? "Your level" : opcao ? "Also an option" : "";
     });
+  }
 
-    if (select.value && permitidos.indexOf(select.value) === -1) {
-      select.value = "";
+  function escolherNivel(ctx, nivel) {
+    if (ctx === "res") {
+      const f = Object.assign({}, state.filtros, { estilo: nivel });
+      aplicarFiltros(f, true, true);
+    } else {
+      state.rascunho.estilo = nivel;
+      renderResposta("home");
     }
-    if (ocasiao && permitidos.length === 1) {
-      select.value = permitidos[0];
-    }
-    field.classList.toggle("is-filled", !!select.value);
-    field.classList.remove("is-error");
-
-    if (note) {
-      if (ocasiao && permitidos.length === 1) {
-        note.textContent = "Level set by the selected occasion.";
-        note.hidden = false;
-      } else if (ocasiao) {
-        note.textContent = permitidos.length + " levels available for this occasion.";
-        note.hidden = false;
-      } else {
-        note.hidden = true;
-      }
-    }
-    if (prefix === "home") updateProgress();
-  }
-
-  function setFormValues(prefix, filtros) {
-    FILTERS.forEach(function (f) {
-      const select = document.getElementById(prefix + "-" + f.key);
-      select.value = filtros[f.key] || "";
-      select.closest(".field").classList.toggle("is-filled", !!select.value);
-      select.closest(".field").classList.remove("is-error");
-    });
-    atualizarEstilos(prefix);
-  }
-
-  function readFormValues(prefix) {
-    const out = {};
-    FILTERS.forEach(function (f) {
-      out[f.key] = document.getElementById(prefix + "-" + f.key).value;
-    });
-    return out;
-  }
-
-  function validateForm(prefix) {
-    let firstMissing = null;
-    FILTERS.forEach(function (f) {
-      const select = document.getElementById(prefix + "-" + f.key);
-      const field = select.closest(".field");
-      if (!select.value) {
-        field.classList.add("is-error", "shake");
-        /* O estado de erro não pode depender só da cor da borda. */
-        select.setAttribute("aria-invalid", "true");
-        setTimeout(function () { field.classList.remove("shake"); }, 400);
-        if (!firstMissing) firstMissing = select;
-      } else {
-        select.removeAttribute("aria-invalid");
-      }
-    });
-    if (firstMissing) firstMissing.focus();
-    return !firstMissing;
-  }
-
-  function updateProgress() {
-    const values = readFormValues("home");
-    const n = FILTERS.filter(function (f) { return values[f.key]; }).length;
-    el.formProgress.textContent = n === 5 ? "All set — see your suggestions" : n + " of 5 filters selected";
-    el.formHint.classList.remove("is-error");
+    const alvo = ctx === "home" ? el.askHomeResposta : el.resResposta;
+    const b = alvo.querySelector('.nivel[data-nivel="' + nivel + '"]');
+    if (b) b.focus({ preventScroll: true });
   }
 
   /* ---------- Matching ---------- */
@@ -900,13 +1134,10 @@
     card.className = "look-card";
     card.style.setProperty("--i", index);
 
-    const CLIMA_LABEL = { quente: "Warm", ameno: "Mild", frio: "Cold" };
-    const climaTag = (look.cli || []).length === 3
-      ? "All weather"
-      : (look.cli || []).map(function (c) { return CLIMA_LABEL[c]; }).join(" · ");
+    const climaTag = climaTagDe(look);
 
     /* Área e ocasião não entram: são iguais em todos os cards e já estão
-       nos chips do topo. Sobra o que de fato distingue um card do outro. */
+       na frase do topo. Sobra o que de fato distingue um card do outro. */
     const tags = [
       { label: look.estilo, mod: " tag--style" },
       { label: climaTag, mod: "" },
@@ -943,43 +1174,218 @@
     return card;
   }
 
-  function renderChips(f) {
-    const partes = [
-      { label: "Department", value: f.area },
-      { label: "Occasion", value: f.ocasiao },
-      { label: "Weather", value: f.clima },
-      { label: "Style", value: f.estilo },
-      { label: "Wardrobe", value: f.genero },
-    ];
-    el.chips.innerHTML =
-      partes.map(function (p) {
-        return '<span class="chip"><span class="chip__label">' + p.label + "</span><b>" + p.value + "</b></span>";
-      }).join("") +
-      '<span class="chip chip--edit">' +
-        '<svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">' +
-        '<path d="M11.3 2.7a1.6 1.6 0 0 1 2.3 2.3L5.5 13l-3 .7.7-3 8.1-8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>' +
-        "Edit</span>";
+  /* ---------- O look principal ----------
+     Os resultados abrem por uma sugestão só, grande, com as notas de
+     estilista ao lado. As outras ficam numa régua logo abaixo: primeiro os
+     looks do nível da busca, depois os dos níveis vizinhos que também
+     servem para a ocasião. */
+  const CLIMA_LABEL = { quente: "Warm", ameno: "Mild", frio: "Cold" };
+
+  function listaLooks() {
+    const res = state.busca;
+    return res.exatos.concat(res.relacionados);
   }
 
-  function contagem(catKey) {
-    const f = state.filtros;
+  function climaTagDe(look) {
+    return (look.cli || []).length === 3
+      ? "All weather"
+      : (look.cli || []).map(function (c) { return CLIMA_LABEL[c]; }).join(" · ");
+  }
+
+  function notasDoLook(look, extra) {
     const res = state.busca;
-    if (!res || !res.nivel) return 0;
-    if (catKey === "looks") return res.exatos.length;
-    return itensDe(catKey, res.nivel, f).length;
+    const f = state.filtros;
+    const grupo = CLIMA_GRUPO[f.clima];
+    const notas = [];
+
+    if (extra) {
+      notas.push({
+        titulo: "Another option",
+        texto: "This one is <b>" + look.estilo + "</b>, a neighboring level that also works for " +
+          (OCASIAO_FRASE[f.ocasiao] || f.ocasiao) + ".",
+      });
+    }
+
+    let clima;
+    if (res.climaRelaxado && !extra) {
+      clima = "There’s no " + res.nivel + " look for " + f.clima.toLowerCase() +
+        " weather yet — this is the closest, with nothing out of season.";
+    } else if ((look.cli || []).length === 3) {
+      clima = "Works in any weather — add or drop a layer as the day changes.";
+    } else {
+      clima = {
+        quente: "Picked for warm days — nothing heavy, nothing out of season.",
+        ameno: "Picked for mild weather — easy to layer up or down as the day changes.",
+        frio: "Picked for cold days — warm layers that still look sharp indoors.",
+      }[grupo];
+    }
+    notas.push({ titulo: "The weather", texto: clima });
+
+    REGRAS.forEach(function (r) {
+      if (r.nota && r.noLook(look, res, f)) notas.push(r.nota);
+    });
+    return notas;
+  }
+
+  function renderLook() {
+    const res = state.busca;
+    const f = state.filtros;
+    const lista = listaLooks();
+    el.look.innerHTML = "";
+
+    if (!lista.length) {
+      el.look.classList.add("look--vazio");
+      el.look.innerHTML =
+        '<div class="empty">' +
+          "<h2>No complete looks for this weather yet</h2>" +
+          "<p>There are no <b>" + res.nivel + "</b> outfits for <b>" + f.clima.toLowerCase() +
+          "</b> weather without out-of-season pieces yet. Build one from the pieces below, " +
+          "or change the weather in the sentence above.</p>" +
+        "</div>";
+      return;
+    }
+    el.look.classList.remove("look--vazio");
+
+    const i = Math.min(state.destaque, lista.length - 1);
+    const look = lista[i];
+    const extra = i >= res.exatos.length;
+    const contador = extra
+      ? "Also suitable"
+      : "Your look · " + (i + 1) + " of " + res.exatos.length;
+    const tags = [
+      '<span class="tag tag--style">' + look.estilo + "</span>",
+      '<span class="tag">' + climaTagDe(look) + "</span>",
+    ];
+    const notas = notasDoLook(look, extra);
+    const seta = function (d) {
+      return '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="' +
+        (d < 0 ? "M10 3.5L5.5 8l4.5 4.5" : "M6 3.5L10.5 8 6 12.5") +
+        '" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    };
+
+    el.look.innerHTML =
+      '<div class="look__media look-card__media look-card__media--foto">' +
+        '<img src="' + look.img + '"' + srcsetDe(look.img) +
+        ' sizes="(max-width: 768px) 100vw, 560px" alt="" decoding="async" />' +
+      "</div>" +
+      '<div class="look__info">' +
+        '<div class="look__topo">' +
+          '<p class="eyebrow look__contador">' + contador + "</p>" +
+          '<div class="look__nav">' +
+            '<button type="button" class="btn-icon" data-passo="-1" aria-label="Previous look"' +
+              (lista.length < 2 ? " disabled" : "") + ">" + seta(-1) + "</button>" +
+            '<button type="button" class="btn-icon" data-passo="1" aria-label="Next look"' +
+              (lista.length < 2 ? " disabled" : "") + ">" + seta(1) + "</button>" +
+          "</div>" +
+        "</div>" +
+        '<h2 class="look__nome" id="look-nome">' + look.nome + "</h2>" +
+        '<p class="look__desc">' + look.desc + "</p>" +
+        '<div class="look-card__tags">' + tags.join("") + "</div>" +
+        '<div class="notas">' +
+          '<p class="eyebrow notas__titulo">Stylist notes</p>' +
+          "<ul>" +
+            notas.map(function (n) {
+              return '<li class="nota"><span class="nota__titulo">' + n.titulo + "</span>" +
+                '<span class="nota__texto">' + n.texto + "</span></li>";
+            }).join("") +
+          "</ul>" +
+        "</div>" +
+      "</div>";
+
+    const foto = el.look.querySelector("img");
+    if (foto.complete) pintarSobra(foto);
+    else foto.addEventListener("load", function () { pintarSobra(foto); }, { once: true });
+
+    el.look.querySelectorAll("[data-passo]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        const passo = Number(b.dataset.passo);
+        mostrarLook((state.destaque + passo + lista.length) % lista.length);
+        const igual = el.look.querySelector('[data-passo="' + passo + '"]');
+        if (igual) igual.focus({ preventScroll: true });
+      });
+    });
+  }
+
+  function renderStrip() {
+    const res = state.busca;
+    const lista = listaLooks();
+    el.strip.innerHTML = "";
+    el.stripWrap.hidden = lista.length < 2;
+
+    lista.forEach(function (look, i) {
+      const extra = i >= res.exatos.length;
+      if (extra && i === res.exatos.length && i > 0) {
+        const sep = document.createElement("span");
+        sep.className = "strip__sep";
+        sep.setAttribute("role", "presentation");
+        sep.textContent = "Also suitable";
+        el.strip.appendChild(sep);
+      }
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "thumb";
+      b.dataset.i = i;
+      b.setAttribute("role", "listitem");
+      b.setAttribute("aria-label", look.nome + (extra ? " — " + look.estilo : ""));
+      const src = VARIANTES_600[look.img] || look.img;
+      b.innerHTML =
+        '<span class="thumb__media"><img src="' + encodeURI(src) + '" alt="" loading="lazy" decoding="async" /></span>' +
+        (extra ? '<span class="thumb__tag">' + look.estilo + "</span>" : "");
+      const foto = b.querySelector("img");
+      if (foto.complete) pintarSobra(foto);
+      else foto.addEventListener("load", function () { pintarSobra(foto); }, { once: true });
+      b.addEventListener("click", function () {
+        mostrarLook(i);
+        /* O look principal fica acima da régua: no celular ele já saiu da
+           tela quando a pessoa chega aqui. */
+        const topo = el.look.getBoundingClientRect().top;
+        if (topo < 0) el.look.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      el.strip.appendChild(b);
+    });
+    marcarThumb();
+  }
+
+  function marcarThumb() {
+    let ativo = null;
+    el.strip.querySelectorAll(".thumb").forEach(function (t) {
+      const sel = Number(t.dataset.i) === state.destaque;
+      if (sel) { t.setAttribute("aria-current", "true"); ativo = t; }
+      else t.removeAttribute("aria-current");
+    });
+    if (!ativo) return;
+    const s = el.strip;
+    const ini = ativo.offsetLeft - 16;
+    const fim = ativo.offsetLeft + ativo.offsetWidth + 16;
+    if (ini < s.scrollLeft) s.scrollTo({ left: ini, behavior: "smooth" });
+    else if (fim > s.scrollLeft + s.clientWidth) s.scrollTo({ left: fim - s.clientWidth, behavior: "smooth" });
+  }
+
+  function mostrarLook(i) {
+    state.destaque = i;
+    renderLook();
+    marcarThumb();
+    const nome = el.look.querySelector(".look__nome");
+    const contador = el.look.querySelector(".look__contador");
+    if (nome) el.lookAnuncio.textContent = contador.textContent + ": " + nome.textContent;
+  }
+
+  /* ---------- Build it yourself: as peças por categoria ---------- */
+  function categoriasDePecas(genero) {
+    return categoriasDe(genero).filter(function (c) { return c.key !== "looks"; });
   }
 
   function renderTabs() {
     el.cats.innerHTML = "";
-    /* Se a categoria ativa não existe para este gênero (ex.: trocou para
-       masculino estando em Vestidos), volta para Looks completos. */
-    const disponiveis = categoriasDe(state.filtros.genero);
+    /* Se a categoria ativa não existe para este guarda-roupa (ex.: trocou
+       para menswear estando em Dresses), volta para a primeira. */
+    const disponiveis = categoriasDePecas(state.filtros.genero);
     if (!disponiveis.some(function (c) { return c.key === state.categoria; })) {
-      state.categoria = "looks";
+      state.categoria = disponiveis[0].key;
     }
 
     disponiveis.forEach(function (cat) {
-      const n = contagem(cat.key);
+      const n = itensDe(cat.key, state.busca.nivel, state.filtros).length;
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "cat";
@@ -993,12 +1399,7 @@
       btn.tabIndex = ativa ? 0 : -1;
       btn.innerHTML = cat.label + '<span class="cat__count">' + n + "</span>";
       btn.addEventListener("click", function () {
-        if (state.categoria === cat.key) {
-          /* Reclicar a aba já ativa não precisa re-renderizar, mas o aviso da
-             categoria ainda deve aparecer — é o que a regra do jeans pede. */
-          dispararModalDaCategoria(cat.key);
-          return;
-        }
+        if (state.categoria === cat.key) return;
         state.categoria = cat.key;
         el.cats.querySelectorAll(".cat").forEach(function (b) {
           const sel = b === btn;
@@ -1006,7 +1407,6 @@
           b.tabIndex = sel ? 0 : -1;
         });
         renderCategoria();
-        dispararModalDaCategoria(cat.key);
       });
       el.cats.appendChild(btn);
     });
@@ -1025,15 +1425,6 @@
     el.grid.innerHTML = "";
     el.grid.setAttribute("aria-labelledby", "cat-" + state.categoria);
 
-    if (!res.adequado && res.nivel) {
-      const aviso = document.createElement("p");
-      aviso.className = "notice";
-      aviso.innerHTML =
-        "<b>" + f.estilo + "</b> isn't the recommended level for <b>" + f.ocasiao + "</b>. " +
-        "Here are suggestions in <b>" + res.nivel + "</b>, the closest suitable level.";
-      el.grid.appendChild(aviso);
-    }
-
     /* Avisos de regra fixos na grade. Cada um sabe quando se aplica. */
     REGRAS.forEach(function (regra) {
       if (!regra.vale(res, f, state.categoria)) return;
@@ -1047,57 +1438,32 @@
       el.grid.appendChild(aviso);
     });
 
-    if (res.climaRelaxado && state.categoria === "looks") {
-      const avisoClima = document.createElement("p");
-      avisoClima.className = "notice";
-      avisoClima.innerHTML =
-        "There are no <b>" + res.nivel + "</b> looks for <b>" + f.clima.toLowerCase() + "</b> weather yet — " +
-        "showing options for the closest weather (nothing out of season).";
-      el.grid.appendChild(avisoClima);
-    }
-
-    const itens = state.categoria === "looks" ? res.exatos : itensDe(state.categoria, res.nivel, f);
+    const itens = itensDe(state.categoria, res.nivel, f);
     const rotulo = CATEGORIAS.filter(function (c) { return c.key === state.categoria; })[0].label;
 
     if (itens.length === 0) {
       const vazio = document.createElement("div");
       vazio.className = "empty";
-      const semClima = state.categoria === "looks";
       vazio.innerHTML =
-        "<h2>" + (semClima ? "No looks for this weather yet" : "No suggestions in this category") + "</h2>" +
-        "<p>" + (semClima
-          ? "There are no <b>" + res.nivel + "</b> outfits for <b>" + f.clima.toLowerCase() +
-            "</b> weather without out-of-season pieces yet. Try another weather or edit the filters."
-          : "Adjust the filters to explore other combinations.") + "</p>" +
-        '<button type="button" class="btn btn--primary" id="empty-edit">Edit filters</button>';
+        "<h2>No suggestions in this category</h2>" +
+        "<p>Try another weather or occasion in the sentence above.</p>";
       el.grid.appendChild(vazio);
-      document.getElementById("empty-edit").addEventListener("click", openDrawer);
-      el.count.textContent = "0 suggestions";
-    } else {
-      /* Título só para leitor de tela, para os H3 dos cards não pendurarem
-         direto no H1 da página. */
-      const rotuloSr = document.createElement("h2");
-      rotuloSr.className = "sr-only";
-      rotuloSr.textContent = rotulo;
-      el.grid.appendChild(rotuloSr);
-
-      renderLote(itens, f);
-      el.count.textContent =
-        itens.length + (itens.length === 1 ? " suggestion" : " suggestions") + " · " + rotulo;
+      el.count.textContent = "0 pieces";
+      return;
     }
 
-    /* "Você também pode considerar" apenas em Looks completos. A limpeza
-       fica fora do if para não guardar cards de buscas anteriores. */
-    el.relatedGrid.innerHTML = "";
-    el.related.hidden = !(state.categoria === "looks" && res.relacionados.length > 0);
-    if (!el.related.hidden) {
-      res.relacionados.forEach(function (look, i) {
-        el.relatedGrid.appendChild(cardLook(look, f, i));
-      });
-    }
+    /* Título só para leitor de tela, para os H3 dos cards não pendurarem
+       direto no H2 da seção. */
+    const rotuloSr = document.createElement("h3");
+    rotuloSr.className = "sr-only";
+    rotuloSr.textContent = rotulo;
+    el.grid.appendChild(rotuloSr);
+
+    renderLote(itens, f);
+    el.count.textContent = itens.length + (itens.length === 1 ? " piece" : " pieces") + " · " + rotulo;
   }
 
-  /* Mostra os resultados em blocos: 34 cards de uma vez viram 40 telas de
+  /* Mostra as peças em blocos: 34 cards de uma vez viram 40 telas de
      rolagem no celular. */
   const LOTE = 12;
 
@@ -1112,7 +1478,6 @@
       for (let i = mostrados; i < ate; i++) {
         el.grid.appendChild(cardLook(itens[i], f, i - mostrados));
       }
-      const primeiroNovo = mostrados;
       mostrados = ate;
 
       if (mostrados < itens.length) {
@@ -1124,10 +1489,14 @@
         btn.textContent = "Show " + Math.min(LOTE, itens.length - mostrados) +
           " more · " + (itens.length - mostrados) + " left";
         btn.addEventListener("click", function () {
+          const primeiroNovo = mostrados;
           pintar();
-          const cards = el.grid.querySelectorAll(".look-card");
-          const alvo = cards[primeiroNovo + LOTE];
-          if (alvo) alvo.focus ? alvo.focus() : null;
+          /* O botão some no repaint; o foco vai para o primeiro card novo. */
+          const alvo = el.grid.querySelectorAll(".look-card")[primeiroNovo];
+          if (alvo) {
+            alvo.tabIndex = -1;
+            alvo.focus({ preventScroll: true });
+          }
         });
         wrap.appendChild(btn);
         el.grid.appendChild(wrap);
@@ -1139,32 +1508,27 @@
 
   function renderResultados(f) {
     state.busca = buscar(f);
-    /* Cada regra chama atenção uma vez por busca, não a cada troca de aba. */
+    /* Cada aviso de regra chama atenção uma vez por busca, não a cada
+       troca de aba. */
     regrasPendentes = {};
-    modaisPendentes = {};
-    REGRAS.forEach(function (r) {
-      regrasPendentes[r.id] = true;
-      /* Uma pendência por gatilho: o modal aberto na entrada não pode
-         consumir o que deve abrir ao entrar numa aba específica. */
-      gatilhosDe(r).forEach(function (g) { modaisPendentes[r.id + "|" + g] = true; });
-    });
-    renderChips(f);
-    el.styledesc.textContent = NIVEL_DESC[state.busca.nivel] || "";
-    renderTabs();
+    REGRAS.forEach(function (r) { regrasPendentes[r.id] = true; });
 
-    /* Sem estado de carregamento: `buscar()` é filtragem síncrona sobre um
-       catálogo já em memória, na casa do sub-milissegundo. O atraso de 750 ms
-       e os skeletons que havia aqui fabricavam uma espera que não existe. A
-       troca de tela já é sinalizada pelo `is-entering` da view e pelo
-       `card-in` escalonado de cada card. */
+    renderFrase("res");
+    renderResposta("res");
+    state.destaque = 0;
+    renderLook();
+    renderStrip();
+
+    el.buildSub.innerHTML =
+      "Every piece here is <b>" + state.busca.nivel + "</b> and right for " +
+      f.clima.toLowerCase() + " weather — mix them your way.";
+    renderTabs();
     renderCategoria();
-    /* Regras sem categoria de gatilho abrem já na entrada dos resultados;
-       as demais esperam o usuário abrir a aba correspondente. */
-    dispararModalDaCategoria(null);
   }
 
   /* ---------- Navegação entre views ---------- */
   function showView(view) {
+    fecharPicker(false);
     [el.viewHome, el.viewResults].forEach(function (v) {
       v.hidden = v !== view;
       v.classList.toggle("is-active", v === view);
@@ -1173,8 +1537,6 @@
     void view.offsetWidth;
     view.classList.add("is-entering");
     window.scrollTo({ top: 0, behavior: "auto" });
-    el.btnEditar.hidden = view !== el.viewResults;
-    el.linkDiretrizes.hidden = view === el.viewResults;
 
     /* Leva o foco para o título da tela nova. Sem isso, quem usa teclado ou
        leitor de tela é devolvido ao topo do documento e precisa tabular
@@ -1187,15 +1549,18 @@
   }
 
   /* historico: true empilha no navegador (ação do usuário), false apenas
-     substitui (restauração de um popstate, que já mexeu no histórico). */
-  function aplicarFiltros(filtros, historico) {
+     substitui (restauração de um popstate, que já mexeu no histórico).
+     mesmaTela: a busca mudou pela frase dos resultados, então a tela fica
+     onde está, sem voltar ao topo. */
+  function aplicarFiltros(filtros, historico, mesmaTela) {
     state.filtros = filtros;
+    state.rascunho = Object.assign({}, filtros);
     document.title = filtros.estilo + " · " + filtros.ocasiao + " · " + filtros.clima + " — Context";
     try { sessionStorage.setItem("context-filters", JSON.stringify(filtros)); } catch (e) {}
     if (historico !== false) {
       history.pushState({ view: "resultados", filtros: filtros }, "", urlDosFiltros(filtros));
     }
-    showView(el.viewResults);
+    if (!mesmaTela) showView(el.viewResults);
     renderResultados(filtros);
   }
 
@@ -1204,9 +1569,10 @@
     if (historico !== false) {
       history.pushState({ view: "home" }, "", location.pathname);
     }
+    state.rascunho = Object.assign({}, state.filtros);
+    renderFrase("home");
+    renderResposta("home");
     showView(el.viewHome);
-    setFormValues("home", state.filtros);
-    updateProgress();
   }
 
   /* Voltar/Avançar do navegador alternam entre as duas telas em vez de
@@ -1220,140 +1586,17 @@
     }
   });
 
-  /* Enquanto um diálogo está aberto, o resto da página fica inerte: sai do
-     tab order E da árvore de acessibilidade. O trap manual de Tab que havia
-     aqui só resolvia a primeira metade — quem usa leitor de tela em modo de
-     leitura (setas, cursor virtual) atravessava o overlay e continuava lendo
-     os cards atrás dele. `inert` cobre os dois casos e dispensa o trap. */
-  const FUNDO = [el.header, el.conteudo, el.footer];
-  function fundoInerte(v) {
-    FUNDO.forEach(function (n) { if (n) n.inert = v; });
-  }
-
-  /* ---------- Modal de regra ----------
-     Um único modal, com o conteúdo trocado conforme a regra. */
-  let focoAntesModal = null;
-
-  /* Abre o modal da regra ligada a esta categoria, se ainda não foi mostrado
-     nesta busca e se a regra de fato se aplica ao contexto atual. */
-  function gatilhosDe(r) {
-    return Array.isArray(r.abreEm) ? r.abreEm : [r.abreEm];
-  }
-
-  function dispararModalDaCategoria(catKey) {
-    if (!state.busca) return;
-    const regra = REGRAS.filter(function (r) {
-      return gatilhosDe(r).indexOf(catKey) !== -1 &&
-        modaisPendentes[r.id + "|" + catKey] &&
-        r.vale(state.busca, state.filtros, catKey === null ? state.categoria : catKey);
-    })[0];
-    if (!regra) return;
-    /* Gatilho marcado em `sempre` continua pendente: reabre a cada visita. */
-    if ((regra.sempre || []).indexOf(catKey) === -1) {
-      modaisPendentes[regra.id + "|" + catKey] = false;
-    }
-    abrirModalRegra(regra);
-  }
-
-  function abrirModalRegra(regra) {
-    const m = regra.modal;
-    el.jeansEyebrow.textContent = m.eyebrow;
-    el.jeansTitulo.textContent = m.titulo;
-    el.jeansTexto.innerHTML = typeof m.texto === "function" ? m.texto(state.busca) : m.texto;
-    el.jeansIcone.innerHTML = iconeSvg(m.icone, "", 28);
-
-    focoAntesModal = document.activeElement;
-    el.jeansOverlay.hidden = false;
-    el.jeansModal.hidden = false;
-    void el.jeansModal.offsetWidth;
-    el.jeansOverlay.classList.add("is-open");
-    el.jeansModal.classList.add("is-open");
-    document.body.style.overflow = "hidden";
-    fundoInerte(true);
-    el.jeansOk.focus();
-    document.addEventListener("keydown", onModalJeansKeydown);
-  }
-
-  function fecharModalJeans() {
-    el.jeansOverlay.classList.remove("is-open");
-    el.jeansModal.classList.remove("is-open");
-    document.body.style.overflow = "";
-    fundoInerte(false);
-    document.removeEventListener("keydown", onModalJeansKeydown);
-    setTimeout(function () {
-      el.jeansOverlay.hidden = true;
-      el.jeansModal.hidden = true;
-    }, 340);
-    /* O elemento que tinha o foco costuma ser o botão da home, já oculto
-       quando o modal abre. Nesse caso o foco vai para a aba ativa. */
-    const voltarPara = focoAntesModal && focoAntesModal.isConnected && focoAntesModal.offsetParent
-      ? focoAntesModal
-      : el.cats.querySelector('[aria-selected="true"]');
-    if (voltarPara && voltarPara.focus) voltarPara.focus();
-  }
-
-  /* Só Escape: a contenção do Tab vem do `inert` no fundo. A lista fixa de
-     focáveis que havia aqui deixaria um link inalcançável se o texto de uma
-     regra passasse a ter um. */
-  function onModalJeansKeydown(e) {
-    if (e.key === "Escape") fecharModalJeans();
-  }
-
-  /* ---------- Drawer ---------- */
-  let lastFocus = null;
-
-  function openDrawer() {
-    lastFocus = document.activeElement;
-    setFormValues("drawer", state.filtros);
-    el.overlay.hidden = false;
-    el.drawer.hidden = false;
-    void el.drawer.offsetWidth;
-    el.overlay.classList.add("is-open");
-    el.drawer.classList.add("is-open");
-    document.body.style.overflow = "hidden";
-    fundoInerte(true);
-    const first = el.drawer.querySelector("select");
-    if (first) first.focus();
-    document.addEventListener("keydown", onDrawerKeydown);
-  }
-
-  function closeDrawer() {
-    el.overlay.classList.remove("is-open");
-    el.drawer.classList.remove("is-open");
-    document.body.style.overflow = "";
-    /* Antes de devolver o foco: o elemento que o tinha costuma estar no
-       header, que acabou de sair do inerte. */
-    fundoInerte(false);
-    document.removeEventListener("keydown", onDrawerKeydown);
-    setTimeout(function () {
-      el.overlay.hidden = true;
-      el.drawer.hidden = true;
-    }, 450);
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
-  }
-
-  /* Só Escape: a contenção do Tab vem do `inert` no fundo. */
-  function onDrawerKeydown(e) {
-    if (e.key === "Escape") closeDrawer();
-  }
-
   /* ---------- Eventos ---------- */
-  el.formHome.addEventListener("submit", function (e) {
+  el.askHome.addEventListener("submit", function (e) {
     e.preventDefault();
-    if (!validateForm("home")) {
-      el.formProgress.textContent = "Select all filters to continue";
-      el.formHint.classList.add("is-error");
+    const falta = CHAVES_FRASE.filter(function (k) { return !state.rascunho[k]; })[0];
+    if (falta) {
+      el.askHomeHint.textContent = "Fill in the blanks to see your looks.";
+      el.askHomeHint.classList.add("is-error");
+      abrirPicker(slotDe("home", falta));
       return;
     }
-    aplicarFiltros(readFormValues("home"));
-  });
-
-  el.formDrawer.addEventListener("submit", function (e) {
-    e.preventDefault();
-    if (!validateForm("drawer")) return;
-    const filtros = readFormValues("drawer");
-    closeDrawer();
-    aplicarFiltros(filtros);
+    aplicarFiltros(Object.assign({}, state.rascunho));
   });
 
   /* navegação por setas entre as abas de categoria */
@@ -1370,25 +1613,32 @@
     tabs[prox].click();
   });
 
-  el.btnEditar.addEventListener("click", openDrawer);
-  el.chips.addEventListener("click", openDrawer);
-  el.drawerClose.addEventListener("click", closeDrawer);
-  el.drawerCancel.addEventListener("click", closeDrawer);
-  el.overlay.addEventListener("click", closeDrawer);
-  el.jeansOk.addEventListener("click", fecharModalJeans);
-  el.jeansFechar.addEventListener("click", fecharModalJeans);
-  el.jeansOverlay.addEventListener("click", fecharModalJeans);
   el.cats.addEventListener("scroll", atualizarMascaraAbas);
-  window.addEventListener("resize", atualizarMascaraAbas);
+  window.addEventListener("resize", function () {
+    atualizarMascaraAbas();
+    fecharPicker(false);
+  });
+  el.pickerScrim.addEventListener("click", function () { fecharPicker(true); });
 
   el.logoHome.addEventListener("click", function (e) {
     e.preventDefault();
     voltarParaHome();
   });
 
+  /* As diretrizes moram na home; nos resultados o link volta para ela antes
+     de rolar até a seção. */
+  el.linkDiretrizes.addEventListener("click", function (e) {
+    if (el.viewHome.hidden) {
+      e.preventDefault();
+      voltarParaHome();
+      document.getElementById("diretrizes").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+
   /* ---------- Inicialização ---------- */
-  buildFields(el.formHomeCampos, "home");
-  buildFields(el.formDrawerCampos, "drawer");
+  renderEscala();
+  state.rascunho = Object.assign({}, state.filtros);
+  ajustarEstilo(state.rascunho);
 
   /* Link com filtros na URL abre direto nos resultados — é o que permite
      mandar uma consulta pronta para outra pessoa. */
@@ -1396,12 +1646,10 @@
   if (daURL) {
     Object.keys(daURL).forEach(function (k) { state.filtros[k] = daURL[k]; });
     history.replaceState({ view: "resultados", filtros: state.filtros }, "", location.href);
-    setFormValues("home", state.filtros);
-    updateProgress();
     aplicarFiltros(state.filtros, false);
   } else {
     history.replaceState({ view: "home" }, "", location.href);
-    setFormValues("home", state.filtros);
-    updateProgress();
+    renderFrase("home");
+    renderResposta("home");
   }
 })();
