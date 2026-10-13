@@ -622,7 +622,7 @@ body.cursor-click #cursor-dot {
     ["22",1714,437,9,2,1710,436],["23",4331,657,1109,84,3221,655],["24",1725,269,-1,1,1722,269],
     ["25",1721,261,2,1,1719,259]
   ];
-  var imgs=[], ready=[], W=0, H=0, dpr=1, cur=-1, jit=null, lora=null, reveal=STILL?1:0, timer=0, running=false, started=false, vis=true;
+  var imgs=[], ready=[], W=0, H=0, dpr=1, cur=-1, jit=null, lora=null, timer=0, running=false, started=false, vis=true;
   function size(){
     var r=wrap.getBoundingClientRect(); if(!r.width) return false;
     dpr=Math.min(window.devicePixelRatio||1,2); W=r.width; H=r.height;
@@ -643,7 +643,6 @@ body.cursor-click #cursor-dot {
     /* a palavra ocupa ~86% da largura e até ~25% de altura, como o original */
     if(cur<0){
       var m=lora||(lora=measureLora()), s=Math.min(W*.86/m.w, W*.25/m.h);
-      if(reveal<1){ var e=1-Math.pow(1-reveal,3); ctx.beginPath(); ctx.rect(-m.w*s/2-W*.02,-H,(m.w*s+W*.04)*e,H*2); ctx.clip(); }
       ctx.font=LORA.replace('%s',100*s); ctx.textBaseline='alphabetic'; ctx.textAlign='left';
       ctx.fillStyle='#3c3c3c'; ctx.fillText(WORD,-m.cx*s,-m.cy*s);
     } else {
@@ -654,28 +653,22 @@ body.cursor-click #cursor-dot {
     ctx.restore();
   }
   function rnd(a,b){ return a+Math.random()*(b-a); }
-  var bag=[], burst=0, holds=0;
+  var bag=[];
+  /* sorteia sem repetir até passar por todos; a Lora original entra como mais um quadro */
   function pick(){
-    if(!bag.length){ bag=ready.slice(); for(var i=bag.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)), t=bag[i]; bag[i]=bag[k]; bag[k]=t; } }
+    if(!bag.length){ bag=[-1].concat(ready); for(var i=bag.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)), t=bag[i]; bag[i]=bag[k]; bag[k]=t; } }
     var n=bag.pop(); return n===cur&&bag.length ? bag.pop() : n;
   }
-  /* rajadas de trocas (~0,3s cada), com pausas de ~1,5–2s; de vez em quando volta para a serifada original */
+  /* loop contínuo desde a entrada, sem pausas: um quadro novo a cada ~0,2s, como stop-motion */
   function tick(){
     timer=0; if(!running) return;
-    var dur;
-    if(ready.length<3){ dur=500; }
-    else if(burst>0){ burst--; cur=pick(); jit={x:rnd(-.004,.004), y:rnd(-.004,.004), r:rnd(-.02,.02), k:rnd(.96,1.03)}; draw(); dur=rnd(240,380); }
-    else { holds++; if(holds%3===0){ cur=-1; jit=null; draw(); } dur=rnd(1400,2200); burst=Math.round(rnd(4,7)); }
-    timer=setTimeout(tick,dur);
+    if(ready.length){ cur=pick(); jit={x:rnd(-.004,.004), y:rnd(-.004,.004), r:rnd(-.02,.02), k:rnd(.96,1.03)}; draw(); }
+    timer=setTimeout(tick,rnd(190,250));
   }
   function setRun(){
     var go=started&&!STILL&&vis&&!document.hidden;
-    if(go&&!running){ running=true; if(!timer) timer=setTimeout(tick,1200); }
+    if(go&&!running){ running=true; if(!timer) tick(); }
     else if(!go&&running){ running=false; clearTimeout(timer); timer=0; }
-  }
-  function intro(){
-    var t0=performance.now();
-    (function f(t){ reveal=Math.min(1,(t-t0)/1500); draw(); if(reveal<1) requestAnimationFrame(f); else { started=true; setRun(); } })(t0);
   }
   if('IntersectionObserver' in window) new IntersectionObserver(function(es){ vis=es[0].isIntersecting; setRun(); }).observe(wrap);
   document.addEventListener('visibilitychange',setRun);
@@ -684,17 +677,13 @@ body.cursor-click #cursor-dot {
 
   var fs=document.fonts, f0=fs&&fs.load ? fs.load(LORA.replace('%s',100),WORD).catch(function(){}) : Promise.resolve();
   f0.then(function(){ lora=null; if(W&&cur<0) draw(); });
-  Promise.race([f0, new Promise(function(r){ setTimeout(r,1800); })]).then(function(){ lora=null; size(); if(STILL) draw(); else intro(); });
-  /* os letreiramentos chegam depois da página */
-  function more(){
-    if(STILL) return;
-    L.forEach(function(v,i){
-      var im=new Image(); im.decoding='async';
-      im.onload=function(){ (im.decode?im.decode():Promise.resolve()).then(function(){ imgs[i]=im; ready.push(i); },function(){}); };
-      im.src='assets/images/tf/tf-'+v[0]+'.webp';
-    });
-  }
-  if(document.readyState==='complete') setTimeout(more,300); else window.addEventListener('load',function(){ setTimeout(more,300); });
+  Promise.race([f0, new Promise(function(r){ setTimeout(r,1800); })]).then(function(){ lora=null; size(); draw(); started=true; setRun(); });
+  /* os letreiramentos começam a carregar já na entrada; cada um entra no loop assim que chega */
+  if(!STILL) L.forEach(function(v,i){
+    var im=new Image(); im.decoding='async';
+    im.onload=function(){ (im.decode?im.decode():Promise.resolve()).then(function(){ imgs[i]=im; ready.push(i); },function(){}); };
+    im.src='assets/images/tf/tf-'+v[0]+'.webp';
+  });
 })();
 </script>
 
