@@ -609,17 +609,17 @@ body.cursor-click #cursor-dot {
   if(!wrap||!cv||!cv.getContext) return;
   var ctx=cv.getContext('2d'), WORD='the future', grain=null;
   var STILL=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-  /* [família, estilo/peso, flags] — o: só contorno · n: traço fino, sem grão */
+  /* [família, estilo/peso, flags, arquivo] — letras de pincel, pena e marcador desenhadas à mão
+     n: traço fino (sem grão, um pouco mais claro) · arquivo: fonte servida pelo site (Interlope, Velvetyne, OFL) */
   var V=[
     ['Lora','italic 400'],
-    ['Mr Dafoe'],['Sedgwick Ave Display'],['Pacifico'],['Homemade Apple','','n'],['Kolker Brush'],
-    ['Fredericka the Great'],['Knewave'],['Mrs Saint Delafield','','n'],['Splash'],['Permanent Marker'],
-    ['Yellowtail'],['Rubik Spray Paint'],['Zhi Mang Xing'],['Shrikhand','','o'],['Rock Salt'],
-    ['Water Brush'],['Lobster'],['Londrina Sketch'],['Kaushan Script'],['Herr Von Muellerhoff','','n'],
-    ['Grechen Fuemen'],['Lacquer'],['Chicle'],['Mr Dafoe','','o'],['Damion'],['Cabin Sketch'],
-    ['Ma Shan Zheng'],['Sassy Frass','','n'],['Mansalva'],['Leckerli One'],['Love Ya Like A Sister'],
-    ['Yesteryear'],['Zeyada','','n'],['Pacifico','','o'],['Caveat Brush'],['Kristi','','n'],['Jolly Lodger'],
-    ['Rubik Marker Hatch'],['Rubik Wet Paint'],['Knewave','','o']
+    ['Mrs Sheppards'],['Island Moments','','n'],['East Sea Dokdo'],['Interlope','','n','assets/fonts/Interlope-Regular.woff2'],
+    ['Fasthand'],['Meddon','','n'],['Gveret Levin'],['Dawning of a New Day','','n'],['Liu Jian Mao Cao'],
+    ['Beth Ellen'],['Devonshire'],['Babylonica','','n'],['Nanum Brush Script'],['Momo Signature','','n'],
+    ['Freckle Face'],['Jim Nightshade','','n'],
+    ['Dokdo'],['La Belle Aurore','','n'],['My Soul'],['Loved by the King'],['Kings','','n'],['Freehand'],
+    ['Waiting for the Sunrise','','n'],['Long Cang'],['Mr Bedfort','','n'],['Condiment'],['Nanum Pen Script'],
+    ['Give You Glory','','n'],['Ruge Boogie','','n'],['Gaegu'],['Love Light','','n']
   ];
   function fontOf(v,px){ return (v[1]||'400')+' '+px+'px "'+v[0]+'"'; }
   function has(v,f){ return (v[2]||'').indexOf(f)>-1; }
@@ -647,11 +647,10 @@ body.cursor-click #cursor-dot {
     ctx.translate(W/2+j.x*W, H/2-W*.016+j.y*W); ctx.rotate(j.r); ctx.scale(j.k,j.k);
     if(reveal<1){ var e=1-Math.pow(1-reveal,3); ctx.beginPath(); ctx.rect(-m.w*s/2-W*.02,-H,(m.w*s+W*.04)*e,H*2); ctx.clip(); }
     ctx.font=fontOf(v,100*s); ctx.textBaseline='alphabetic'; ctx.textAlign='left';
-    var o=has(v,'o'), x=-m.cx*s, y=-m.cy*s;
-    if(o){ ctx.lineWidth=Math.max(1,W*.0026); ctx.lineJoin='round'; ctx.strokeStyle='#525252'; ctx.strokeText(WORD,x,y); }
-    else { ctx.fillStyle='#3c3c3c'; ctx.fillText(WORD,x,y); }
+    var thin=has(v,'n');
+    ctx.fillStyle=thin?'#4a4a4a':'#3c3c3c'; ctx.fillText(WORD,-m.cx*s,-m.cy*s);
     /* grão de tinta escaneada nas versões feitas à mão */
-    if(cur&&!o&&!has(v,'n')){ ctx.globalCompositeOperation='destination-out'; ctx.fillStyle=ink(); ctx.translate(rnd(0,160),rnd(0,160)); ctx.fillRect(-W*2,-H*2,W*4,H*4); }
+    if(cur&&!thin){ ctx.globalCompositeOperation='destination-out'; ctx.fillStyle=ink(); ctx.translate(rnd(0,160),rnd(0,160)); ctx.fillRect(-W*2,-H*2,W*4,H*4); }
     ctx.restore();
   }
   function rnd(a,b){ return a+Math.random()*(b-a); }
@@ -667,13 +666,13 @@ body.cursor-click #cursor-dot {
     if(!bag.length){ bag=ready.slice(1); for(var i=bag.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)), t=bag[i]; bag[i]=bag[k]; bag[k]=t; } }
     var n=bag.pop(); return n===cur&&bag.length ? bag.pop() : n;
   }
-  /* rajadas rápidas de trocas, com pausas de ~1s; de vez em quando volta para a serifada original */
+  /* rajadas de trocas (~0,3s cada), com pausas de ~1,5–2s; de vez em quando volta para a serifada original */
   function tick(){
     timer=0; if(!running) return;
     var dur;
     if(ready.length<4){ dur=500; }
-    else if(burst>0){ burst--; cur=pick(); jit={x:rnd(-.004,.004), y:rnd(-.004,.004), r:rnd(-.02,.02), k:rnd(.96,1.03)}; draw(); dur=rnd(105,185); }
-    else { holds++; if(holds%3===0){ cur=0; jit=null; draw(); } dur=rnd(900,1500); burst=Math.round(rnd(6,12)); }
+    else if(burst>0){ burst--; cur=pick(); jit={x:rnd(-.004,.004), y:rnd(-.004,.004), r:rnd(-.02,.02), k:rnd(.96,1.03)}; draw(); dur=rnd(240,380); }
+    else { holds++; if(holds%3===0){ cur=0; jit=null; draw(); } dur=rnd(1400,2200); burst=Math.round(rnd(4,7)); }
     timer=setTimeout(tick,dur);
   }
   function setRun(){
@@ -700,12 +699,14 @@ body.cursor-click #cursor-dot {
     if(STILL) return;
     var l=document.createElement('link'); l.rel='stylesheet';
     var seen={};
-    l.href='https://fonts.googleapis.com/css2?'+V.slice(1).filter(function(v){ return seen[v[0]]?false:(seen[v[0]]=1); }).map(function(v){
-      var a=v[0].replace(/ /g,'+');
-      if(v[1]==='italic 400') a+=':ital@1'; else if(v[1]==='italic 900') a+=':ital,wght@1,900'; else if(v[1]) a+=':wght@'+v[1];
-      return 'family='+a;
+    V.forEach(function(v,i){
+      if(!v[3]||!window.FontFace) return;
+      new FontFace(v[0],'url('+v[3]+') format("woff2")').load().then(function(f){ fs.add(f); ready.push(i); },function(){});
+    });
+    l.href='https://fonts.googleapis.com/css2?'+V.slice(1).filter(function(v){ return !v[3]&&(seen[v[0]]?false:(seen[v[0]]=1)); }).map(function(v){
+      return 'family='+v[0].replace(/ /g,'+');
     }).join('&')+'&text='+encodeURIComponent(WORD)+'&display=swap';
-    l.onload=function(){ V.forEach(function(v,i){ if(i) loadFont(i).then(function(ok){ if(ok) ready.push(i); }); }); };
+    l.onload=function(){ V.forEach(function(v,i){ if(i&&!v[3]) loadFont(i).then(function(ok){ if(ok) ready.push(i); }); }); };
     document.head.appendChild(l);
   }
   if(document.readyState==='complete') setTimeout(more,300); else window.addEventListener('load',function(){ setTimeout(more,300); });
