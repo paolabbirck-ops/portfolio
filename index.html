@@ -603,76 +603,69 @@ body.cursor-click #cursor-dot {
   </div>
 </div>
 <script>
-/* banner: "the future" troca de tipografia em stop-motion atrás do título */
+/* banner: "the future" troca de letreiramento em stop-motion atrás do título */
 (function(){
   var wrap=document.getElementById('hero-tf'), cv=document.getElementById('tf-canvas');
   if(!wrap||!cv||!cv.getContext) return;
-  var ctx=cv.getContext('2d'), WORD='the future', grain=null;
+  var ctx=cv.getContext('2d'), WORD='the future', LORA='italic 400 %spx "Lora"';
   var STILL=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
-  /* [família, estilo/peso, flags, arquivo] — letras de pincel, pena e marcador desenhadas à mão
-     n: traço fino (sem grão, um pouco mais claro) · arquivo: fonte servida pelo site (Interlope, Velvetyne, OFL) */
-  var V=[
-    ['Lora','italic 400'],
-    ['Mrs Sheppards'],['Island Moments','','n'],['East Sea Dokdo'],['Interlope','','n','assets/fonts/Interlope-Regular.woff2'],
-    ['Fasthand'],['Meddon','','n'],['Gveret Levin'],['Dawning of a New Day','','n'],['Liu Jian Mao Cao'],
-    ['Beth Ellen'],['Devonshire'],['Babylonica','','n'],['Nanum Brush Script'],['Momo Signature','','n'],
-    ['Freckle Face'],['Jim Nightshade','','n'],
-    ['Dokdo'],['La Belle Aurore','','n'],['My Soul'],['Loved by the King'],['Kings','','n'],['Freehand'],
-    ['Waiting for the Sunrise','','n'],['Long Cang'],['Mr Bedfort','','n'],['Condiment'],['Nanum Pen Script'],
-    ['Give You Glory','','n'],['Ruge Boogie','','n'],['Gaegu'],['Love Light','','n']
+  /* letreiramentos construídos à mão (pincel, pena, marcador, contorno, pautas, pincel seco, escorrido),
+     cinza sobre preto: assets/images/tf/tf-NN.webp · [NN, largura, altura, caixa da palavra x0, y0, x1, y1] */
+  var L=[
+    ["01",2101,667,0,2,2099,654],["02",1432,230,5,8,1430,229],["03",4308,719,1104,94,3206,717],
+    ["04",2109,640,1,1,2107,638],["05",2105,665,0,5,2102,662],["06",1062,270,0,1,1059,268],
+    ["07",2115,634,0,0,2116,632],["08",1732,321,2,1,1730,315],["09",2083,626,-3,0,2086,614],
+    ["10",2101,670,10,1,2099,668],["11",1541,237,0,3,1537,235],["12",1246,366,1,0,1244,364],
+    ["13",2100,660,0,2,2101,657],["14",1728,294,3,1,1723,286],["15",4312,632,1096,7,3216,630],
+    ["16",1459,262,3,2,1457,260],["17",1729,260,-2,0,1727,257],["18",1741,299,2,0,1731,287],
+    ["19",1304,567,-1,1,1312,565],["20",1497,229,2,1,1495,225],["21",2106,705,1,1,2103,703],
+    ["22",1714,437,9,2,1710,436],["23",4331,657,1109,84,3221,655],["24",1725,269,-1,1,1722,269],
+    ["25",1721,261,2,1,1719,259]
   ];
-  function fontOf(v,px){ return (v[1]||'400')+' '+px+'px "'+v[0]+'"'; }
-  function has(v,f){ return (v[2]||'').indexOf(f)>-1; }
-
-  var W=0,H=0,dpr=1,cur=0,jit=null,ready=[0],metrics={},reveal=STILL?1:0,timer=0,running=false,started=false,vis=true;
-  /* caixa da tinta (a 100px), para centralizar e encaixar qualquer fonte */
-  function measure(i){
-    if(metrics[i]) return metrics[i];
-    ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.font=fontOf(V[i],100);
-    var m=ctx.measureText(WORD); ctx.restore();
-    var L=m.actualBoundingBoxLeft||0, R=m.actualBoundingBoxRight||m.width, A=m.actualBoundingBoxAscent||72, D=m.actualBoundingBoxDescent||20;
-    return (metrics[i]={cx:(R-L)/2, cy:(D-A)/2, w:L+R, h:A+D});
-  }
+  var imgs=[], ready=[], W=0, H=0, dpr=1, cur=-1, jit=null, lora=null, reveal=STILL?1:0, timer=0, running=false, started=false, vis=true;
   function size(){
     var r=wrap.getBoundingClientRect(); if(!r.width) return false;
     dpr=Math.min(window.devicePixelRatio||1,2); W=r.width; H=r.height;
     cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); return true;
   }
+  /* caixa da tinta da Lora (a 100px), a serifada original do banner */
+  function measureLora(){
+    ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.font=LORA.replace('%s',100);
+    var m=ctx.measureText(WORD); ctx.restore();
+    var l=m.actualBoundingBoxLeft||0, r=m.actualBoundingBoxRight||m.width, a=m.actualBoundingBoxAscent||72, d=m.actualBoundingBoxDescent||20;
+    return {cx:(r-l)/2, cy:(d-a)/2, w:l+r, h:a+d};
+  }
   function draw(){
     if(!W&&!size()) return;
     ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H); ctx.save();
-    var v=V[cur], m=measure(cur), j=jit||{x:0,y:0,r:0,k:1};
-    /* ~86% da largura e até ~25% de altura, como o original */
-    var s=Math.min(W*.86/m.w, W*.25/m.h);
+    var j=jit||{x:0,y:0,r:0,k:1};
     ctx.translate(W/2+j.x*W, H/2-W*.016+j.y*W); ctx.rotate(j.r); ctx.scale(j.k,j.k);
-    if(reveal<1){ var e=1-Math.pow(1-reveal,3); ctx.beginPath(); ctx.rect(-m.w*s/2-W*.02,-H,(m.w*s+W*.04)*e,H*2); ctx.clip(); }
-    ctx.font=fontOf(v,100*s); ctx.textBaseline='alphabetic'; ctx.textAlign='left';
-    var thin=has(v,'n');
-    ctx.fillStyle=thin?'#4a4a4a':'#3c3c3c'; ctx.fillText(WORD,-m.cx*s,-m.cy*s);
-    /* grão de tinta escaneada nas versões feitas à mão */
-    if(cur&&!thin){ ctx.globalCompositeOperation='destination-out'; ctx.fillStyle=ink(); ctx.translate(rnd(0,160),rnd(0,160)); ctx.fillRect(-W*2,-H*2,W*4,H*4); }
+    /* a palavra ocupa ~86% da largura e até ~25% de altura, como o original */
+    if(cur<0){
+      var m=lora||(lora=measureLora()), s=Math.min(W*.86/m.w, W*.25/m.h);
+      if(reveal<1){ var e=1-Math.pow(1-reveal,3); ctx.beginPath(); ctx.rect(-m.w*s/2-W*.02,-H,(m.w*s+W*.04)*e,H*2); ctx.clip(); }
+      ctx.font=LORA.replace('%s',100*s); ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+      ctx.fillStyle='#3c3c3c'; ctx.fillText(WORD,-m.cx*s,-m.cy*s);
+    } else {
+      var v=L[cur], bw=v[5]-v[3], bh=v[6]-v[4], k=Math.min(W*.86/bw, W*.25/bh);
+      ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+      ctx.drawImage(imgs[cur], -(v[3]+bw/2)*k, -(v[4]+bh/2)*k, v[1]*k, v[2]*k);
+    }
     ctx.restore();
   }
   function rnd(a,b){ return a+Math.random()*(b-a); }
-  function ink(){
-    if(grain) return grain;
-    var g=document.createElement('canvas'); g.width=g.height=160;
-    var x=g.getContext('2d'), d=x.createImageData(160,160);
-    for(var i=3;i<d.data.length;i+=4){ var r=Math.random(); d.data[i]=r<.05?255:r<.16?80:0; }
-    x.putImageData(d,0,0); return (grain=ctx.createPattern(g,'repeat'));
-  }
   var bag=[], burst=0, holds=0;
   function pick(){
-    if(!bag.length){ bag=ready.slice(1); for(var i=bag.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)), t=bag[i]; bag[i]=bag[k]; bag[k]=t; } }
+    if(!bag.length){ bag=ready.slice(); for(var i=bag.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)), t=bag[i]; bag[i]=bag[k]; bag[k]=t; } }
     var n=bag.pop(); return n===cur&&bag.length ? bag.pop() : n;
   }
   /* rajadas de trocas (~0,3s cada), com pausas de ~1,5–2s; de vez em quando volta para a serifada original */
   function tick(){
     timer=0; if(!running) return;
     var dur;
-    if(ready.length<4){ dur=500; }
+    if(ready.length<3){ dur=500; }
     else if(burst>0){ burst--; cur=pick(); jit={x:rnd(-.004,.004), y:rnd(-.004,.004), r:rnd(-.02,.02), k:rnd(.96,1.03)}; draw(); dur=rnd(240,380); }
-    else { holds++; if(holds%3===0){ cur=0; jit=null; draw(); } dur=rnd(1400,2200); burst=Math.round(rnd(4,7)); }
+    else { holds++; if(holds%3===0){ cur=-1; jit=null; draw(); } dur=rnd(1400,2200); burst=Math.round(rnd(4,7)); }
     timer=setTimeout(tick,dur);
   }
   function setRun(){
@@ -689,25 +682,17 @@ body.cursor-click #cursor-dot {
   if('ResizeObserver' in window) new ResizeObserver(function(){ if(size()) draw(); }).observe(wrap);
   else window.addEventListener('resize',function(){ if(size()) draw(); });
 
-  var fs=document.fonts;
-  function loadFont(i){ return fs&&fs.load ? fs.load(fontOf(V[i],100),WORD).then(function(f){ return !!(f&&f.length); },function(){ return false; }) : Promise.resolve(false); }
-  var f0=loadFont(0);
-  f0.then(function(){ delete metrics[0]; if(W&&cur===0) draw(); });
-  Promise.race([f0, new Promise(function(r){ setTimeout(r,1800); })]).then(function(){ metrics={}; size(); if(STILL) draw(); else intro(); });
-  /* as outras fontes chegam depois da página, só com as letras de "the future" */
+  var fs=document.fonts, f0=fs&&fs.load ? fs.load(LORA.replace('%s',100),WORD).catch(function(){}) : Promise.resolve();
+  f0.then(function(){ lora=null; if(W&&cur<0) draw(); });
+  Promise.race([f0, new Promise(function(r){ setTimeout(r,1800); })]).then(function(){ lora=null; size(); if(STILL) draw(); else intro(); });
+  /* os letreiramentos chegam depois da página */
   function more(){
     if(STILL) return;
-    var l=document.createElement('link'); l.rel='stylesheet';
-    var seen={};
-    V.forEach(function(v,i){
-      if(!v[3]||!window.FontFace) return;
-      new FontFace(v[0],'url('+v[3]+') format("woff2")').load().then(function(f){ fs.add(f); ready.push(i); },function(){});
+    L.forEach(function(v,i){
+      var im=new Image(); im.decoding='async';
+      im.onload=function(){ (im.decode?im.decode():Promise.resolve()).then(function(){ imgs[i]=im; ready.push(i); },function(){}); };
+      im.src='assets/images/tf/tf-'+v[0]+'.webp';
     });
-    l.href='https://fonts.googleapis.com/css2?'+V.slice(1).filter(function(v){ return !v[3]&&(seen[v[0]]?false:(seen[v[0]]=1)); }).map(function(v){
-      return 'family='+v[0].replace(/ /g,'+');
-    }).join('&')+'&text='+encodeURIComponent(WORD)+'&display=swap';
-    l.onload=function(){ V.forEach(function(v,i){ if(i&&!v[3]) loadFont(i).then(function(ok){ if(ok) ready.push(i); }); }); };
-    document.head.appendChild(l);
   }
   if(document.readyState==='complete') setTimeout(more,300); else window.addEventListener('load',function(){ setTimeout(more,300); });
 })();
