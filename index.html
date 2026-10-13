@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Paola Bertoni — Designer</title>
 <link rel="stylesheet" href="https://use.typekit.net/ykk1swv.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Lora:ital@1&text=Designing%20what%27s%20next%20the%20future&display=block">
 <style>
 
 /* ── RESET ─────────────────────────────────────── */
@@ -29,7 +32,13 @@ body {
 }
 #video-top.on { display: block; }
 #video-top::before { content: ''; display: block; padding-top: 56.25%; }
-/* gif fills the block natively */
+#hero-tf { position: absolute; inset: 0; overflow: hidden; container-type: inline-size; }
+#tf-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#hero-tf .hero-title {
+  position: absolute; left: 50%; top: calc(50% - 1.1vw); top: calc(50% - 1.1cqw); transform: translate(-50%, -50%);
+  font-family: 'Poppins', 'aktiv-grotesk', sans-serif; font-weight: 700; color: #fff;
+  font-size: 6.84vw; font-size: 6.84cqw; line-height: 1; white-space: nowrap;
+}
 .play-ring {
   width: 54px; height: 54px; border-radius: 50%;
   border: 1.5px solid rgba(255,255,255,.3);
@@ -588,8 +597,120 @@ body.cursor-click #cursor-dot {
 </script>
 <!-- ── VIDEO — full width above split ── -->
 <div id="video-top" class="on">
-  <img src="assets/gifs/designing_future.gif" alt="Designing what's next" style="width:100%;height:100%;object-fit:cover;display:block;position:absolute;inset:0;"/>
+  <div id="hero-tf" role="img" aria-label="Designing what's next — the future">
+    <canvas id="tf-canvas" aria-hidden="true"></canvas>
+    <span class="hero-title" aria-hidden="true">Designing what's next</span>
+  </div>
 </div>
+<script>
+/* banner: "the future" troca de tipografia em stop-motion atrás do título */
+(function(){
+  var wrap=document.getElementById('hero-tf'), cv=document.getElementById('tf-canvas');
+  if(!wrap||!cv||!cv.getContext) return;
+  var ctx=cv.getContext('2d'), WORD='the future', grain=null;
+  var STILL=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+  /* [família, estilo/peso, flags] — o: só contorno · n: traço fino, sem grão */
+  var V=[
+    ['Lora','italic 400'],
+    ['Mr Dafoe'],['Sedgwick Ave Display'],['Pacifico'],['Homemade Apple','','n'],['Kolker Brush'],
+    ['Fredericka the Great'],['Knewave'],['Mrs Saint Delafield','','n'],['Splash'],['Permanent Marker'],
+    ['Yellowtail'],['Rubik Spray Paint'],['Zhi Mang Xing'],['Shrikhand','','o'],['Rock Salt'],
+    ['Water Brush'],['Lobster'],['Londrina Sketch'],['Kaushan Script'],['Herr Von Muellerhoff','','n'],
+    ['Grechen Fuemen'],['Lacquer'],['Chicle'],['Mr Dafoe','','o'],['Damion'],['Cabin Sketch'],
+    ['Ma Shan Zheng'],['Sassy Frass','','n'],['Mansalva'],['Leckerli One'],['Love Ya Like A Sister'],
+    ['Yesteryear'],['Zeyada','','n'],['Pacifico','','o'],['Caveat Brush'],['Kristi','','n'],['Jolly Lodger'],
+    ['Rubik Marker Hatch'],['Rubik Wet Paint'],['Knewave','','o']
+  ];
+  function fontOf(v,px){ return (v[1]||'400')+' '+px+'px "'+v[0]+'"'; }
+  function has(v,f){ return (v[2]||'').indexOf(f)>-1; }
+
+  var W=0,H=0,dpr=1,cur=0,jit=null,ready=[0],metrics={},reveal=STILL?1:0,timer=0,running=false,started=false,vis=true;
+  /* caixa da tinta (a 100px), para centralizar e encaixar qualquer fonte */
+  function measure(i){
+    if(metrics[i]) return metrics[i];
+    ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.font=fontOf(V[i],100);
+    var m=ctx.measureText(WORD); ctx.restore();
+    var L=m.actualBoundingBoxLeft||0, R=m.actualBoundingBoxRight||m.width, A=m.actualBoundingBoxAscent||72, D=m.actualBoundingBoxDescent||20;
+    return (metrics[i]={cx:(R-L)/2, cy:(D-A)/2, w:L+R, h:A+D});
+  }
+  function size(){
+    var r=wrap.getBoundingClientRect(); if(!r.width) return false;
+    dpr=Math.min(window.devicePixelRatio||1,2); W=r.width; H=r.height;
+    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); return true;
+  }
+  function draw(){
+    if(!W&&!size()) return;
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H); ctx.save();
+    var v=V[cur], m=measure(cur), j=jit||{x:0,y:0,r:0,k:1};
+    /* ~86% da largura e até ~25% de altura, como o original */
+    var s=Math.min(W*.86/m.w, W*.25/m.h);
+    ctx.translate(W/2+j.x*W, H/2-W*.016+j.y*W); ctx.rotate(j.r); ctx.scale(j.k,j.k);
+    if(reveal<1){ var e=1-Math.pow(1-reveal,3); ctx.beginPath(); ctx.rect(-m.w*s/2-W*.02,-H,(m.w*s+W*.04)*e,H*2); ctx.clip(); }
+    ctx.font=fontOf(v,100*s); ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+    var o=has(v,'o'), x=-m.cx*s, y=-m.cy*s;
+    if(o){ ctx.lineWidth=Math.max(1,W*.0026); ctx.lineJoin='round'; ctx.strokeStyle='#525252'; ctx.strokeText(WORD,x,y); }
+    else { ctx.fillStyle='#3c3c3c'; ctx.fillText(WORD,x,y); }
+    /* grão de tinta escaneada nas versões feitas à mão */
+    if(cur&&!o&&!has(v,'n')){ ctx.globalCompositeOperation='destination-out'; ctx.fillStyle=ink(); ctx.translate(rnd(0,160),rnd(0,160)); ctx.fillRect(-W*2,-H*2,W*4,H*4); }
+    ctx.restore();
+  }
+  function rnd(a,b){ return a+Math.random()*(b-a); }
+  function ink(){
+    if(grain) return grain;
+    var g=document.createElement('canvas'); g.width=g.height=160;
+    var x=g.getContext('2d'), d=x.createImageData(160,160);
+    for(var i=3;i<d.data.length;i+=4){ var r=Math.random(); d.data[i]=r<.05?255:r<.16?80:0; }
+    x.putImageData(d,0,0); return (grain=ctx.createPattern(g,'repeat'));
+  }
+  var bag=[], burst=0, holds=0;
+  function pick(){
+    if(!bag.length){ bag=ready.slice(1); for(var i=bag.length-1;i>0;i--){ var k=Math.floor(Math.random()*(i+1)), t=bag[i]; bag[i]=bag[k]; bag[k]=t; } }
+    var n=bag.pop(); return n===cur&&bag.length ? bag.pop() : n;
+  }
+  /* rajadas rápidas de trocas, com pausas de ~1s; de vez em quando volta para a serifada original */
+  function tick(){
+    timer=0; if(!running) return;
+    var dur;
+    if(ready.length<4){ dur=500; }
+    else if(burst>0){ burst--; cur=pick(); jit={x:rnd(-.004,.004), y:rnd(-.004,.004), r:rnd(-.02,.02), k:rnd(.96,1.03)}; draw(); dur=rnd(105,185); }
+    else { holds++; if(holds%3===0){ cur=0; jit=null; draw(); } dur=rnd(900,1500); burst=Math.round(rnd(6,12)); }
+    timer=setTimeout(tick,dur);
+  }
+  function setRun(){
+    var go=started&&!STILL&&vis&&!document.hidden;
+    if(go&&!running){ running=true; if(!timer) timer=setTimeout(tick,1200); }
+    else if(!go&&running){ running=false; clearTimeout(timer); timer=0; }
+  }
+  function intro(){
+    var t0=performance.now();
+    (function f(t){ reveal=Math.min(1,(t-t0)/1500); draw(); if(reveal<1) requestAnimationFrame(f); else { started=true; setRun(); } })(t0);
+  }
+  if('IntersectionObserver' in window) new IntersectionObserver(function(es){ vis=es[0].isIntersecting; setRun(); }).observe(wrap);
+  document.addEventListener('visibilitychange',setRun);
+  if('ResizeObserver' in window) new ResizeObserver(function(){ if(size()) draw(); }).observe(wrap);
+  else window.addEventListener('resize',function(){ if(size()) draw(); });
+
+  var fs=document.fonts;
+  function loadFont(i){ return fs&&fs.load ? fs.load(fontOf(V[i],100),WORD).then(function(f){ return !!(f&&f.length); },function(){ return false; }) : Promise.resolve(false); }
+  var f0=loadFont(0);
+  f0.then(function(){ delete metrics[0]; if(W&&cur===0) draw(); });
+  Promise.race([f0, new Promise(function(r){ setTimeout(r,1800); })]).then(function(){ metrics={}; size(); if(STILL) draw(); else intro(); });
+  /* as outras fontes chegam depois da página, só com as letras de "the future" */
+  function more(){
+    if(STILL) return;
+    var l=document.createElement('link'); l.rel='stylesheet';
+    var seen={};
+    l.href='https://fonts.googleapis.com/css2?'+V.slice(1).filter(function(v){ return seen[v[0]]?false:(seen[v[0]]=1); }).map(function(v){
+      var a=v[0].replace(/ /g,'+');
+      if(v[1]==='italic 400') a+=':ital@1'; else if(v[1]==='italic 900') a+=':ital,wght@1,900'; else if(v[1]) a+=':wght@'+v[1];
+      return 'family='+a;
+    }).join('&')+'&text='+encodeURIComponent(WORD)+'&display=swap';
+    l.onload=function(){ V.forEach(function(v,i){ if(i) loadFont(i).then(function(ok){ if(ok) ready.push(i); }); }); };
+    document.head.appendChild(l);
+  }
+  if(document.readyState==='complete') setTimeout(more,300); else window.addEventListener('load',function(){ setTimeout(more,300); });
+})();
+</script>
 
 <!-- ── SPLIT ── -->
 <div id="app">
