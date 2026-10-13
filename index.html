@@ -113,6 +113,24 @@ body {
   background-size: cover;
   background-position: center;
 }
+/* Logos animados nas miniaturas de "Mais projetos" */
+/* o centro fica preto: o núcleo da esfera é um recorte e mostra o fundo,
+   como no logo; o brilho só envolve a borda da esfera */
+.thumb-ctx { width:100%; height:100%; display:block; background:radial-gradient(closest-side, #07080b 0 64%, rgba(200,69,47,.24) 76%, rgba(124,141,180,.12) 90%, #07080b 100%), #07080b; }
+.thumb-wl { width:100%; height:100%; position:relative; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#1238e6 0%,#2a1a9e 50%,#6a2ae0 100%); background-size:220% 220%;
+  animation:wl-bg 7s ease-in-out infinite alternate; }
+.thumb-wl .wl-icon { width:31px; height:31px; border-radius:9px; background:#fff; display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 14px rgba(10,10,60,.38); animation:wl-float 3.6s ease-in-out infinite; }
+.thumb-wl .wl-star { width:15px; height:15px; display:block; animation:wl-twinkle 3.6s cubic-bezier(.45,0,.2,1) infinite; }
+.thumb-wl .wl-glint { position:absolute; left:calc(50% + 11px); top:calc(50% - 21px); width:9px; height:9px; display:block; opacity:0;
+  animation:wl-glint 3.6s ease-in-out infinite; }
+@keyframes wl-bg { from { background-position:0% 0%; } to { background-position:100% 100%; } }
+@keyframes wl-float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-2px); } }
+/* a estrela tem quatro pontas: girar 90° volta ao mesmo desenho, então o loop não tem emenda */
+@keyframes wl-twinkle { 0% { transform:rotate(0) scale(1); } 38% { transform:rotate(90deg) scale(.8); } 56% { transform:rotate(90deg) scale(1.1); } 72%,100% { transform:rotate(90deg) scale(1); } }
+@keyframes wl-glint { 0%,42% { transform:scale(0) rotate(0); opacity:0; } 58% { transform:scale(1) rotate(45deg); opacity:1; } 78%,100% { transform:scale(0) rotate(90deg); opacity:0; } }
+@media (prefers-reduced-motion: reduce) { .thumb-wl, .thumb-wl * { animation:none !important; } }
 .mais-info { flex: 1; }
 .mais-name { font-size: 14px; font-weight: 400; color: #fff; margin-bottom: 3px; }
 .mais-desc { font-size: 12px; font-weight: 300; color: #666; line-height: 1.5; }
@@ -1140,7 +1158,44 @@ function renderAll(){
 }
 
 // ── MAIS PROJETOS ──────────────────────────────
+/* Logos animados das miniaturas (Context e Wish List). Com movimento
+   reduzido, as animações SVG ficam de fora e o logo aparece parado. */
+const THUMB_MOTION = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+function ctxThumb(){
+  const a = (tag) => THUMB_MOTION ? tag : '';
+  /* a marca do Context: a esfera (ardósia → brasa) com o núcleo inclinado;
+     a luz desliza pelo degradê, o núcleo oscila e um anel de brasa se abre */
+  return `<svg class="thumb-ctx" viewBox="0 0 64 64" aria-hidden="true">
+    <defs>
+      <linearGradient id="thc-g" x1="0" y1="0" x2="0" y2="1" spreadMethod="reflect">
+        <stop offset="0" stop-color="#7C8DB4"/><stop offset=".45" stop-color="#AAB5CB"/>
+        <stop offset=".72" stop-color="#EE9A63"/><stop offset="1" stop-color="#C8452F"/>
+        ${a('<animateTransform attributeName="gradientTransform" type="translate" values="0 -0.12;0 0.12;0 -0.12" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"/>')}
+      </linearGradient>
+      <mask id="thc-m" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+        <rect width="64" height="64" fill="#fff"/>
+        <ellipse cx="34.3" cy="39.6" rx="11.8" ry="6.85" fill="#000" transform="rotate(-12 34.3 39.6)">
+          ${a('<animateTransform attributeName="transform" type="rotate" values="-12 34.3 39.6;-2 34.3 39.6;-18 34.3 39.6;-12 34.3 39.6" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"/>')}
+        </ellipse>
+      </mask>
+    </defs>
+    <circle cx="32" cy="32" r="19" fill="none" stroke="#EE9A63" stroke-width="1.2" opacity="0">
+      ${a('<animate attributeName="r" values="19;29" dur="2.5s" begin="0.6s" repeatCount="indefinite" calcMode="spline" keySplines=".2 .6 .3 1"/><animate attributeName="opacity" values=".75;0" dur="2.5s" begin="0.6s" repeatCount="indefinite"/>')}
+    </circle>
+    <circle cx="32" cy="32" r="19" fill="url(#thc-g)" mask="url(#thc-m)"/>
+  </svg>`;
+}
+function wlThumb(){
+  const star = 'M12 2C12.6 7.6 16.4 11.4 22 12C16.4 12.6 12.6 16.4 12 22C11.4 16.4 7.6 12.6 2 12C7.6 11.4 11.4 7.6 12 2Z';
+  return `<div class="thumb-wl" aria-hidden="true">
+    <div class="wl-icon"><svg class="wl-star" viewBox="0 0 24 24"><path d="${star}" fill="#0b0b10"/></svg></div>
+    <svg class="wl-glint" viewBox="0 0 24 24"><path d="${star}" fill="#fff"/></svg>
+  </div>`;
+}
+
 function getThumbContent(id){
+  if (id === 'context') return ctxThumb();
+  if (id === 'wishlist') return wlThumb();
   if (id === 'revoluciona') {
     return '<img src="assets/svg/revoluciona_thumb.svg" style="width:100%;height:100%;object-fit:cover;" alt="Quem Revoluciona Lidera"/>';
   }
